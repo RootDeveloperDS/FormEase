@@ -20,7 +20,7 @@ export interface CompressionResult {
 
 /**
  * Deterministic Adaptive Binary Search Quality Convergence loop
- * Mathematically targets the near-ceiling bracket [92% - 98%] of maximum allowed bytes.
+ * Mathematically targets the near-ceiling bracket [92% - 98.5%] of maximum allowed bytes.
  */
 export async function compressToNearCeiling(
   sourceCanvas: HTMLCanvasElement | OffscreenCanvas,
@@ -29,19 +29,19 @@ export async function compressToNearCeiling(
   recursionDepth = 0
 ): Promise<CompressionResult> {
   const mimeType = target.mimeType || 'image/jpeg';
-  const targetCeiling = target.maxBytes;
+  const targetCeiling = Math.max(1024, target.maxBytes);
   // Near ceiling optimal bracket: 92% to 98.5%
   const optimalFloor = targetCeiling * 0.92;
   const optimalCeiling = targetCeiling * 0.985;
 
   let currentCanvas: HTMLCanvasElement | OffscreenCanvas = sourceCanvas;
-  let curWidth = currentCanvas.width;
-  let curHeight = currentCanvas.height;
+  const curWidth = Math.max(1, currentCanvas.width);
+  const curHeight = Math.max(1, currentCanvas.height);
 
   // For PNG, browser canvas doesn't support quality param; size depends purely on dimensions/data
   if (mimeType === 'image/png') {
     const pngBlob = await canvasToBlob(currentCanvas, 'image/png');
-    if (pngBlob.size <= targetCeiling || recursionDepth > 4) {
+    if (pngBlob.size <= targetCeiling || recursionDepth > 3) {
       const dataUrl = await blobToDataUrl(pngBlob);
       return {
         blob: pngBlob,
@@ -56,14 +56,14 @@ export async function compressToNearCeiling(
       };
     }
     // Scale down canvas for PNG to fit ceiling
-    const scaledCanvas = createScaledCanvas(currentCanvas, 0.85);
+    const scaledCanvas = createScaledCanvas(currentCanvas, 0.88);
     return compressToNearCeiling(scaledCanvas, target, maxIterations, recursionDepth + 1);
   }
 
   let low = 0.05;
   let high = 0.99;
   let bestBlob: Blob | null = null;
-  let bestQuality = 0.8;
+  let bestQuality = 0.85;
   let totalIterations = 0;
 
   for (let i = 0; i < maxIterations; i++) {
@@ -90,17 +90,17 @@ export async function compressToNearCeiling(
 
   // Resolution Guardrail:
   // If no blob under ceiling was found, OR quality had to drop below 0.22 (resulting in nasty artifacts),
-  // slightly downscale canvas dimensions by 7% and re-converge.
-  if ((!bestBlob || bestBlob.size > targetCeiling || bestQuality < 0.22) && recursionDepth < 4) {
-    const scaleFactor = bestQuality < 0.22 ? 0.90 : 0.93;
+  // slightly downscale canvas dimensions by 8% and re-converge.
+  if ((!bestBlob || bestBlob.size > targetCeiling || bestQuality < 0.22) && recursionDepth < 3) {
+    const scaleFactor = bestQuality < 0.22 ? 0.90 : 0.92;
     const scaledCanvas = createScaledCanvas(currentCanvas, scaleFactor);
     return compressToNearCeiling(scaledCanvas, target, maxIterations, recursionDepth + 1);
   }
 
   // Fallback to minimal valid blob or lowest quality candidate
   if (!bestBlob) {
-    bestBlob = await canvasToBlob(currentCanvas, mimeType, 0.05);
-    bestQuality = 0.05;
+    bestBlob = await canvasToBlob(currentCanvas, mimeType, 0.1);
+    bestQuality = 0.1;
   }
 
   const dataUrl = await blobToDataUrl(bestBlob);
@@ -128,7 +128,7 @@ export async function canvasToBlob(
   mimeType: string,
   quality?: number
 ): Promise<Blob> {
-  if (canvas instanceof HTMLCanvasElement) {
+  if (typeof HTMLCanvasElement !== 'undefined' && canvas instanceof HTMLCanvasElement) {
     return new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
         (b) => {
@@ -139,19 +139,23 @@ export async function canvasToBlob(
         quality
       );
     });
-  } else {
-    // OffscreenCanvas
-    return (canvas as OffscreenCanvas).convertToBlob({
+  } else if (typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas) {
+    return canvas.convertToBlob({
       type: mimeType,
       quality,
     });
+  } else {
+    throw new Error('Unsupported canvas context');
   }
 }
 
 /**
- * Utility to convert Blob to Data URL
+ * Universal safe utility to convert Blob to URL/DataURL
  */
 export function blobToDataUrl(blob: Blob): Promise<string> {
+  if (typeof URL !== 'undefined' && URL.createObjectURL) {
+    return Promise.resolve(URL.createObjectURL(blob));
+  }
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => resolve(reader.result as string);
@@ -161,21 +165,32 @@ export function blobToDataUrl(blob: Blob): Promise<string> {
 }
 
 /**
- * Creates high-quality scaled canvas using bicubic-like high smoothing
+ * Creates high-quality scaled canvas supporting both browser DOM and Web Worker contexts
  */
 function createScaledCanvas(
   source: HTMLCanvasElement | OffscreenCanvas,
   scale: number
-): HTMLCanvasElement {
+): HTMLCanvasElement | OffscreenCanvas {
   const newWidth = Math.max(16, Math.floor(source.width * scale));
   const newHeight = Math.max(16, Math.floor(source.height * scale));
 
-  const canvas = document.createElement('canvas');
-  canvas.width = newWidth;
-  canvas.height = newHeight;
-  const ctx = canvas.getContext('2d')!;
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(source as CanvasImageSource, 0, 0, newWidth, newHeight);
-  return canvas;
+  if (typeof document !== 'undefined' && document.createElement) {
+    const canvas = document.createElement('canvas');
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+    const ctx = canvas.getContext('2d')!;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(source as CanvasImageSource, 0, 0, newWidth, newHeight);
+    return canvas;
+  } else if (typeof OffscreenCanvas !== 'undefined') {
+    const canvas = new OffscreenCanvas(newWidth, newHeight);
+    const ctx = canvas.getContext('2d')!;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(source as CanvasImageSource, 0, 0, newWidth, newHeight);
+    return canvas;
+  } else {
+    return source;
+  }
 }

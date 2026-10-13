@@ -1,5 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { UploadCloud, FileText, Image as ImageIcon, Sparkles } from 'lucide-react';
+import {
+  generateSamplePhotoBlob,
+  generateSampleSignatureBlob,
+  generateSampleDocumentBlob,
+} from '../../utils/sampleDataGenerator';
 
 interface MultiDropzoneProps {
   onFilesSelected: (files: File[]) => void;
@@ -8,6 +13,7 @@ interface MultiDropzoneProps {
   title?: string;
   description?: string;
   className?: string;
+  showSampleAction?: boolean;
 }
 
 export const MultiDropzone: React.FC<MultiDropzoneProps> = ({
@@ -17,9 +23,29 @@ export const MultiDropzone: React.FC<MultiDropzoneProps> = ({
   title = 'Drop camera photos, signatures, or documents here',
   description = 'Supports JPG, PNG, WebP & PDF documents up to 50 MB',
   className = '',
+  showSampleAction = true,
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isLoadingSample, setIsLoadingSample] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleLoadSamples = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsLoadingSample(true);
+    try {
+      const [photo, sig, doc] = await Promise.all([
+        generateSamplePhotoBlob(),
+        generateSampleSignatureBlob(),
+        generateSampleDocumentBlob(),
+      ]);
+      onFilesSelected([photo, sig, doc]);
+    } catch (err) {
+      console.error('Failed to generate sample batch files:', err);
+    } finally {
+      setIsLoadingSample(false);
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -109,6 +135,18 @@ export const MultiDropzone: React.FC<MultiDropzoneProps> = ({
             <FileText className="w-3.5 h-3.5 text-yellow-400" /> Grayscale PDF Support
           </span>
         </div>
+
+        {showSampleAction && (
+          <button
+            type="button"
+            onClick={handleLoadSamples}
+            disabled={isLoadingSample}
+            className="mt-2 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-300 text-[11px] font-semibold flex items-center gap-1.5 shadow-sm transition-all"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{isLoadingSample ? 'Generating 3 sample batch files...' : '✨ Try 3 Sample Batch Files'}</span>
+          </button>
+        )}
       </div>
     </div>
   );

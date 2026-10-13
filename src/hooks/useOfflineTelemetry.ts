@@ -18,13 +18,20 @@ let interceptorInstalled = false;
 function isExtensionOrLocal(url: string): boolean {
   if (!url) return true;
   const str = String(url).toLowerCase();
+  const origin = typeof window !== 'undefined' ? window.location.origin.toLowerCase() : '';
   return (
     str.startsWith('chrome-extension://') ||
     str.startsWith('moz-extension://') ||
     str.startsWith('safari-extension://') ||
     str.startsWith('edge-extension://') ||
     str.startsWith('blob:') ||
-    str.startsWith('data:')
+    str.startsWith('data:') ||
+    str.startsWith('/') ||
+    str.startsWith('./') ||
+    (origin ? str.startsWith(origin) : false) ||
+    str.includes('localhost') ||
+    str.includes('127.0.0.1') ||
+    str.includes('@vite')
   );
 }
 

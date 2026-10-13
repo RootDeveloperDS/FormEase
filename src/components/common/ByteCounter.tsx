@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatBytes } from '../../utils/byteFormatter';
-import { Zap } from 'lucide-react';
+import { Zap, CheckCircle2 } from 'lucide-react';
 
 interface ByteCounterProps {
   currentBytes: number;
@@ -31,48 +31,68 @@ export const ByteCounter: React.FC<ByteCounterProps> = ({
   const isOverLimit = ratio > 1.0;
   const isUnderMin = targetMinBytes ? currentBytes < targetMinBytes : false;
 
-  let barColor = 'bg-blue-500';
-  let badgeText = `${pct}% of Limit`;
-  let badgeColor = 'text-blue-400 border-blue-500/30 bg-blue-500/10';
-
-  if (isOptimal) {
-    barColor = 'bg-emerald-400';
-    badgeText = '⚡ 92%-98% Sweet Spot';
-    badgeColor = 'text-emerald-300 border-emerald-500/40 bg-emerald-500/15';
-  } else if (isOverLimit) {
-    barColor = 'bg-rose-500';
-    badgeText = 'Exceeds Ceiling';
-    badgeColor = 'text-rose-300 border-rose-500/40 bg-rose-500/15';
-  } else if (isUnderMin) {
-    barColor = 'bg-yellow-500';
-    badgeText = 'Below Minimum';
-    badgeColor = 'text-yellow-300 border-yellow-500/40 bg-yellow-500/15';
-  }
-
   return (
-    <div className={`space-y-1.5 ${className}`}>
+    <div className={`space-y-2 select-none ${className}`}>
+      {/* Precision Instrument Metric Bar Header */}
       <div className="flex items-center justify-between text-xs">
-        <div className="flex items-center gap-1.5 font-mono font-semibold">
-          <span className={isOptimal ? 'text-emerald-400' : isOverLimit ? 'text-rose-400' : 'text-slate-200'}>
+        <div className="flex items-center gap-1.5 font-mono">
+          <span
+            className={`font-bold ${
+              isOptimal
+                ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]'
+                : isOverLimit
+                ? 'text-rose-400 font-bold'
+                : 'text-slate-200'
+            }`}
+          >
             {formatBytes(currentBytes)}
           </span>
-          <span className="text-slate-500">/</span>
-          <span className="text-slate-400">{formatBytes(targetMaxBytes)} Max</span>
+          <span className="text-slate-500 font-normal">/</span>
+          <span className="text-slate-400 font-medium">{formatBytes(targetMaxBytes)}</span>
+          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold ml-0.5">
+            Max
+          </span>
         </div>
 
-        <span
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border ${badgeColor}`}
-        >
-          {isOptimal && <Zap className="w-3 h-3 text-emerald-400 fill-emerald-400/30" />}
-          {bracketPercentage ? `${bracketPercentage}% Target` : badgeText}
-        </span>
+        {/* Live Sweet Spot & Compliance Pill */}
+        {isOptimal ? (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-500/20">
+            <Zap className="w-3 h-3 text-emerald-400 fill-emerald-400/40 animate-pulse" />
+            <span>Optimal Sharpness [PASS]</span>
+          </span>
+        ) : isOverLimit ? (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm shadow-rose-500/20">
+            Exceeds Limit
+          </span>
+        ) : isUnderMin ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/30">
+            Below Min Floor
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+            {bracketPercentage ? `${bracketPercentage}% of Limit` : `${pct}% of Limit`}
+          </span>
+        )}
       </div>
 
-      {/* Progress Fuel Gauge Bar */}
-      <div className="w-full h-2 rounded-full bg-slate-800/90 overflow-hidden border border-slate-700/50">
+      {/* Precision Instrument Glowing Progress Line */}
+      <div className="relative w-full h-2 rounded-full bg-slate-900 border border-slate-800 overflow-hidden shadow-inner">
+        {/* Sweet Spot Target Zone Indicator (92% - 100%) */}
         <div
-          className={`h-full rounded-full transition-all duration-300 ease-out ${barColor}`}
-          style={{ width: `${Math.min(100, Math.max(3, pct))}%` }}
+          className="absolute top-0 bottom-0 right-0 w-[10%] bg-emerald-500/15 border-l border-emerald-500/30 pointer-events-none"
+          title="Optimal 92%-98% Target Window"
+        />
+
+        {/* Dynamic Progress Fill with Ambient Glow */}
+        <div
+          className={`h-full rounded-full transition-all duration-300 ease-out relative ${
+            isOptimal
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_12px_rgba(52,211,153,0.5)]'
+              : isOverLimit
+              ? 'bg-gradient-to-r from-amber-500 to-orange-400'
+              : 'bg-gradient-to-r from-blue-500 to-emerald-400'
+          }`}
+          style={{ width: `${Math.min(100, Math.max(4, pct))}%` }}
         />
       </div>
     </div>

@@ -7,7 +7,7 @@ import { Footer } from './components/layout/Footer';
 import { DossierSlotsView } from './components/queue/DossierSlotsView';
 import { SandboxQueueView } from './components/queue/SandboxQueueView';
 import { DossierExportModal } from './components/export/DossierExportModal';
-import { Sparkles, Shield, Zap, CheckCircle2 } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 export const App: React.FC = () => {
   const { activeMode } = useDossierStore();
@@ -20,40 +20,48 @@ export const App: React.FC = () => {
       <Header onOpenExportModal={() => setIsExportModalOpen(true)} />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Beginner-Friendly Hero Banner */}
-        <div className="relative rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 p-6 sm:p-8 shadow-2xl overflow-hidden">
-          {/* Subtle Glow backdrop */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+        {/* High-Aura Problem-Targeting Hero Banner */}
+        <div className="relative rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800/90 p-6 sm:p-10 pt-8 sm:pt-11 shadow-2xl overflow-hidden mt-1">
+          {/* Subtle Ambient Radial Glow backdrop */}
           <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 max-w-3xl space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold tracking-wide">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Adaptive Near-Ceiling Sizing (92% - 98% Bracket Guarantee)</span>
+          <div className="relative z-10 max-w-3xl space-y-4">
+            {/* ONE Crisp Glowing Security Pill (properly padded, never clipped) */}
+            <div>
+              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold tracking-wide shadow-sm shadow-emerald-500/10 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
+                <Zap className="w-3.5 h-3.5 fill-emerald-400/30" />
+                <span>⚡ 100% Offline • Zero Data Leaves Your Device</span>
+              </span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+            {/* Display Typography */}
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#F8FAFC] leading-[1.15]">
               Format, Cleanse & Bundle Application Documents in 3 Clicks
             </h1>
 
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
-              No more cryptic <span className="text-rose-400 font-mono font-semibold">"File Exceeds 50 KB"</span> portal rejections. Drop your raw photos, signatures, or certificates. FormEase bleaches ink shadows, normalizes official aspect ratios, and converges to the maximum allowable quality ceiling client-side.
+            {/* High-Converting, Direct Problem-Targeting Subtitle */}
+            <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-normal">
+              NO more portal errors {' '}
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md font-bold text-rose-300 bg-rose-500/20 border border-rose-500/40 shadow-sm shadow-rose-500/20">
+                "File Exceeds 50 KB"
+              </span>{' '}
+              or{' '}
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md font-bold text-rose-300 bg-rose-500/20 border border-rose-500/40 shadow-sm shadow-rose-500/20">
+                "Wrong Photo Size"
+              </span>
+              . Just drop your phone camera photos, signatures, or documents. FormEase cleans up shadowy backgrounds to clean white, aligns face framing, and fits the exact size requirements right in your browser.
             </p>
 
-            {/* Micro Feature Badges */}
-            <div className="flex flex-wrap items-center gap-3 pt-2 text-xs text-slate-300 font-medium">
-              <div className="flex items-center gap-1.5 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Active Portal: <strong className="text-white">{activePreset.name}</strong></span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
-                <Shield className="w-3.5 h-3.5 text-blue-400" />
-                <span>100% Offline Canvas Sandbox</span>
-              </div>
-              <div className="flex items-center gap-1.5 bg-slate-900/80 px-3 py-1.5 rounded-xl border border-slate-800">
-                <Zap className="w-3.5 h-3.5 text-yellow-400" />
-                <span>One-Click Dossier (.ZIP) Bundle</span>
+            {/* Active Portal Badge */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-emerald-400 font-semibold">Active Portal:</span>
+                <strong className="text-white font-bold">{activePreset.name}</strong>
+                <span className="text-slate-500">•</span>
+                <span className="text-slate-400 font-mono text-[11px]">{activePreset.authority}</span>
               </div>
             </div>
           </div>

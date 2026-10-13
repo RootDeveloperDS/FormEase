@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Plus, Save, Download, Upload, Trash2, Copy, Sliders } from 'lucide-react';
 import { usePresetStore } from '../../store/usePresetStore';
 import type { PortalPreset, OutputFormat } from '../../core/presets/presetTypes';
@@ -11,6 +12,14 @@ interface CustomPresetModalProps {
 
 export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, onClose }) => {
   const { customPresets, saveCustomPreset, deleteCustomPreset, duplicateCustomPreset, exportPresetsJson, importPresetsJson, setActivePreset } = usePresetStore();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const [activeTab, setActiveTab] = useState<'create' | 'manage'>('create');
   const [name, setName] = useState('');
@@ -139,14 +148,18 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
     reader.readAsText(file);
   };
 
-  return (
+  const modalContent = (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="preset-builder-title"
-      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+      onClick={onClose}
     >
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+      <div
+        className="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-950/50">
           <div className="flex items-center gap-3">
@@ -477,4 +490,6 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };

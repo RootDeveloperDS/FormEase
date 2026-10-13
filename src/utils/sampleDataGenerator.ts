@@ -4,6 +4,16 @@
  */
 
 export async function generateSamplePhotoBlob(): Promise<File> {
+  try {
+    const res = await fetch('/demo/sample_photo.png');
+    if (res.ok) {
+      const blob = await res.blob();
+      return new File([blob], 'demo_passport_photo.png', { type: 'image/png' });
+    }
+  } catch (e) {
+    console.warn('Could not load /demo/sample_photo.png, falling back to canvas vector generation', e);
+  }
+
   const canvas = document.createElement('canvas');
   canvas.width = 1200;
   canvas.height = 1200;
@@ -120,11 +130,7 @@ export async function generateSamplePhotoBlob(): Promise<File> {
   ctx.ellipse(600, 690, 50, 16, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  return new Promise<File>((resolve) => {
-    canvas.toBlob((blob) => {
-      resolve(new File([blob!], 'raw_camera_passport_photo.jpg', { type: 'image/jpeg' }));
-    }, 'image/jpeg', 0.95);
-  });
+  return canvasToFile(canvas, 'raw_camera_passport_photo.jpg', 'image/jpeg', 0.95);
 }
 
 export async function generateSampleSignatureBlob(): Promise<File> {
@@ -174,11 +180,7 @@ export async function generateSampleSignatureBlob(): Promise<File> {
   ctx.arc(840, 385, 8, 0, Math.PI * 2);
   ctx.fill();
 
-  return new Promise<File>((resolve) => {
-    canvas.toBlob((blob) => {
-      resolve(new File([blob!], 'raw_phone_signature_scan.jpg', { type: 'image/jpeg' }));
-    }, 'image/jpeg', 0.95);
-  });
+  return canvasToFile(canvas, 'raw_phone_signature_scan.jpg', 'image/jpeg', 0.95);
 }
 
 export async function generateSampleCertificateBlob(): Promise<File> {
@@ -279,10 +281,32 @@ export async function generateSampleCertificateBlob(): Promise<File> {
   ctx.fillText('Controller of Examinations', 320, 1540);
   ctx.fillText('Member Secretary', 920, 1540);
 
+  return canvasToFile(canvas, 'raw_marksheet_certificate_scan.jpg', 'image/jpeg', 0.95);
+}
+
+export const generateSampleDocumentBlob = generateSampleCertificateBlob;
+
+function canvasToFile(
+  canvas: HTMLCanvasElement,
+  filename: string,
+  mimeType = 'image/jpeg',
+  quality = 0.95
+): Promise<File> {
   return new Promise<File>((resolve) => {
     canvas.toBlob((blob) => {
-      resolve(new File([blob!], 'raw_marksheet_certificate_scan.jpg', { type: 'image/jpeg' }));
-    }, 'image/jpeg', 0.95);
+      if (blob && blob.size > 0) {
+        resolve(new File([blob], filename, { type: mimeType }));
+      } else {
+        const dataUrl = canvas.toDataURL(mimeType, quality);
+        const byteString = atob(dataUrl.split(',')[1]);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        resolve(new File([ab], filename, { type: mimeType }));
+      }
+    }, mimeType, quality);
   });
 }
 

@@ -24,9 +24,8 @@ export function enhanceDocumentCanvas(
   const imageData = ctx.getImageData(0, 0, width, height);
   const data = imageData.data;
 
-  const contrast = options.contrastBoost; // e.g., 1.25
-  const brightness = options.brightness; // e.g., +12
-  const factor = (259 * (contrast * 255 + 255)) / (255 * (259 - contrast * 255));
+  const contrast = typeof options.contrastBoost === 'number' ? options.contrastBoost : 1.1; // 1.0 = normal, 1.25 = punchy
+  const brightness = typeof options.brightness === 'number' ? options.brightness : 0; // -50 to +50
 
   for (let i = 0; i < data.length; i += 4) {
     let r = data[i];
@@ -41,15 +40,11 @@ export function enhanceDocumentCanvas(
       b = gray;
     }
 
-    // Apply brightness
-    r += brightness;
-    g += brightness;
-    b += brightness;
-
-    // Apply contrast
-    r = factor * (r - 128) + 128;
-    g = factor * (g - 128) + 128;
-    b = factor * (b - 128) + 128;
+    // Apply contrast and brightness around midpoint 128
+    // Preserves polarity so white paper stays crisp white and black text stays readable
+    r = (r - 128) * contrast + 128 + brightness;
+    g = (g - 128) * contrast + 128 + brightness;
+    b = (b - 128) * contrast + 128 + brightness;
 
     data[i] = Math.min(255, Math.max(0, Math.round(r)));
     data[i + 1] = Math.min(255, Math.max(0, Math.round(g)));

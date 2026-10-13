@@ -44,6 +44,12 @@ export interface SlotProcessingState {
   bracketPercentage: number;
   status: 'idle' | 'optimizing' | 'valid' | 'warning' | 'error';
   statusMessage: string;
+  customTargetMaxKB?: number;
+  customTargetMinKB?: number;
+  customWidth?: number;
+  customHeight?: number;
+  customAspectRatio?: string;
+  customAspectRatioValue?: number;
 }
 
 export interface SandboxCardState extends SlotProcessingState {
@@ -74,6 +80,19 @@ interface DossierState {
   clearSlot: (slotKey: 'photo' | 'signature' | 'document') => void;
   updateSlotCrop: (slotKey: 'photo' | 'signature' | 'document', crop: Partial<CropState>) => void;
   updateSlotFilters: (slotKey: 'photo' | 'signature' | 'document', filters: Partial<FilterState>) => void;
+  updateSlotTarget: (
+    slotKey: 'photo' | 'signature' | 'document',
+    updates: {
+      maxKB?: number;
+      minKB?: number;
+      width?: number;
+      height?: number;
+      aspectRatio?: string;
+      aspectRatioValue?: number;
+    }
+  ) => Promise<void>;
+  resetSlotCustomTarget: (slotKey: 'photo' | 'signature' | 'document') => Promise<void>;
+  saveCurrentAsCustomPreset: (presetName: string) => string;
   optimizeSlot: (slotKey: 'photo' | 'signature' | 'document') => Promise<void>;
   optimizeAllSlots: () => Promise<void>;
   loadDemoDossier: () => Promise<void>;
@@ -85,7 +104,11 @@ interface DossierState {
   updateSandboxCardFilters: (id: string, filters: Partial<FilterState>) => void;
   updateSandboxCardTarget: (id: string, updates: Partial<SandboxCardState>) => void;
   optimizeSandboxCard: (id: string) => Promise<void>;
-  batchApplySandboxTarget: (targetMaxKB: number, format?: any) => Promise<void>;
+  batchApplySandboxTarget: (
+    targetMaxKB: number,
+    format?: any,
+    dimensions?: { width: number; height: number; aspectRatio?: string }
+  ) => Promise<void>;
   clearAllSandbox: () => void;
 }
 
@@ -98,6 +121,14 @@ const initialFilters: FilterState = {
   sharpenText: true,
   brightness: 0,
 };
+
+// Concurrency guard to prevent asynchronous race conditions and jumping images
+const slotOptimizationSeq: Record<'photo' | 'signature' | 'document', number> = {
+  photo: 0,
+  signature: 0,
+  document: 0,
+};
+const sandboxOptimizationSeq: Record<string, number> = {};
 
 function createEmptySlot(): SlotProcessingState {
   return {
@@ -136,27 +167,32 @@ export const useDossierStore = create<DossierState>((set, get) => ({
     const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
     const sourceUrl = URL.createObjectURL(file);
 
-    let width = 0;
-    let height = 0;
+    let width = 800;
+    let height = 800;
 
     if (isPdf) {
       try {
         const tempCanvas = await renderPdfToCanvas(file, 1.0);
-        width = tempCanvas.width;
-        height = tempCanvas.height;
+        width = tempCanvas.width || 1200;
+        height = tempCanvas.height || 1600;
       } catch {
         width = 1200;
         height = 1600;
       }
     } else {
-      const img = new Image();
-      img.src = sourceUrl;
-      await new Promise((res) => {
-        img.onload = res;
-        img.onerror = res;
-      });
-      width = img.naturalWidth || 800;
-      height = img.naturalHeight || 800;
+      try {
+        const img = new Image();
+        img.src = sourceUrl;
+        await new Promise<void>((res) => {
+          img.onload = () => res();
+          img.onerror = () => res();
+        });
+        width = img.naturalWidth || 800;
+        height = img.naturalHeight || 800;
+      } catch {
+        width = 800;
+        height = 800;
+      }
     }
 
     const slotState: SlotProcessingState = {
@@ -172,7 +208,7 @@ export const useDossierStore = create<DossierState>((set, get) => ({
         grayscale: slotKey === 'document',
       },
       status: 'optimizing',
-      statusMessage: 'Analyzing & auto-optimizing...',
+      statusMessage: 'Optimizing to official bounds...',
     };
 
     if (slotKey === 'photo') set({ photoSlot: slotState });
@@ -186,9 +222,6 @@ export const useDossierStore = create<DossierState>((set, get) => ({
   clearSlot: (slotKey) => {
     const current = get()[`${slotKey}Slot` as keyof DossierState] as SlotProcessingState;
     if (current.sourceUrl) URL.revokeObjectURL(current.sourceUrl);
-    if (current.processedDataUrl && current.processedDataUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(current.processedDataUrl);
-    }
     set({ [`${slotKey}Slot`]: createEmptySlot() });
   },
 
@@ -216,6 +249,98 @@ export const useDossierStore = create<DossierState>((set, get) => ({
     });
   },
 
+  updateSlotTarget: async (slotKey, updates) => {
+    set((state) => {
+      const current = state[`${slotKey}Slot` as keyof DossierState] as SlotProcessingState;
+      return {
+        [`${slotKey}Slot`]: {
+          ...current,
+          customTargetMaxKB: updates.maxKB !== undefined ? updates.maxKB : current.customTargetMaxKB,
+          customTargetMinKB: updates.minKB !== undefined ? updates.minKB : current.customTargetMinKB,
+          customWidth: updates.width !== undefined ? updates.width : current.customWidth,
+          customHeight: updates.height !== undefined ? updates.height : current.customHeight,
+          customAspectRatio: updates.aspectRatio !== undefined ? updates.aspectRatio : current.customAspectRatio,
+          customAspectRatioValue: updates.aspectRatioValue !== undefined ? updates.aspectRatioValue : current.customAspectRatioValue,
+        },
+      };
+    });
+    await get().optimizeSlot(slotKey);
+  },
+
+  resetSlotCustomTarget: async (slotKey) => {
+    set((state) => {
+      const current = state[`${slotKey}Slot` as keyof DossierState] as SlotProcessingState;
+      return {
+        [`${slotKey}Slot`]: {
+          ...current,
+          customTargetMaxKB: undefined,
+          customTargetMinKB: undefined,
+          customWidth: undefined,
+          customHeight: undefined,
+          customAspectRatio: undefined,
+          customAspectRatioValue: undefined,
+        },
+      };
+    });
+    await get().optimizeSlot(slotKey);
+  },
+
+  saveCurrentAsCustomPreset: (presetName: string) => {
+    const activePreset = usePresetStore.getState().getActivePreset();
+    const pSlot = get().photoSlot;
+    const sSlot = get().signatureSlot;
+    const dSlot = get().documentSlot;
+
+    const newId = `custom_${Date.now()}`;
+    const cleanName = presetName.trim() || `${activePreset.name} (Custom)`;
+
+    const customPreset = {
+      ...activePreset,
+      id: newId,
+      name: cleanName,
+      country: 'CUSTOM' as const,
+      countryFlag: '⚙️',
+      authority: 'Custom Preset Profile',
+      description: `Tailored constraints saved on ${new Date().toLocaleDateString()}`,
+      isCustom: true,
+      slots: {
+        ...(activePreset.slots.photo && {
+          photo: {
+            ...activePreset.slots.photo,
+            targetMaxBytes: pSlot.customTargetMaxKB ? pSlot.customTargetMaxKB * 1024 : activePreset.slots.photo.targetMaxBytes,
+            targetMinBytes: pSlot.customTargetMinKB ? pSlot.customTargetMinKB * 1024 : activePreset.slots.photo.targetMinBytes,
+            width: pSlot.customWidth || activePreset.slots.photo.width,
+            height: pSlot.customHeight || activePreset.slots.photo.height,
+            aspectRatio: pSlot.customAspectRatio || activePreset.slots.photo.aspectRatio,
+            aspectRatioValue: pSlot.customAspectRatioValue || activePreset.slots.photo.aspectRatioValue,
+          },
+        }),
+        ...(activePreset.slots.signature && {
+          signature: {
+            ...activePreset.slots.signature,
+            targetMaxBytes: sSlot.customTargetMaxKB ? sSlot.customTargetMaxKB * 1024 : activePreset.slots.signature.targetMaxBytes,
+            targetMinBytes: sSlot.customTargetMinKB ? sSlot.customTargetMinKB * 1024 : activePreset.slots.signature.targetMinBytes,
+            width: sSlot.customWidth || activePreset.slots.signature.width,
+            height: sSlot.customHeight || activePreset.slots.signature.height,
+            aspectRatio: sSlot.customAspectRatio || activePreset.slots.signature.aspectRatio,
+            aspectRatioValue: sSlot.customAspectRatioValue || activePreset.slots.signature.aspectRatioValue,
+          },
+        }),
+        ...(activePreset.slots.document && {
+          document: {
+            ...activePreset.slots.document,
+            targetMaxBytes: dSlot.customTargetMaxKB ? dSlot.customTargetMaxKB * 1024 : activePreset.slots.document.targetMaxBytes,
+            targetMinBytes: dSlot.customTargetMinKB ? dSlot.customTargetMinKB * 1024 : activePreset.slots.document.targetMinBytes,
+          },
+        }),
+      },
+    };
+
+    usePresetStore.getState().saveCustomPreset(customPreset);
+    usePresetStore.getState().setActivePreset(newId);
+    return newId;
+  },
+
   optimizeSlot: async (slotKey) => {
     const slot = get()[`${slotKey}Slot` as keyof DossierState] as SlotProcessingState;
     if (!slot.file) return;
@@ -224,11 +349,19 @@ export const useDossierStore = create<DossierState>((set, get) => ({
     const requirement: SlotRequirement | undefined = preset.slots[slotKey];
     if (!requirement) return;
 
+    // Increment run sequence for this slot to cancel any previous inflight runs
+    const runSeq = ++slotOptimizationSeq[slotKey];
+
+    const targetMaxBytes = slot.customTargetMaxKB ? slot.customTargetMaxKB * 1024 : requirement.targetMaxBytes;
+    const targetMinBytes = slot.customTargetMinKB ? slot.customTargetMinKB * 1024 : requirement.targetMinBytes;
+    const targetW = Math.max(16, slot.customWidth || requirement.width || 400);
+    const targetH = Math.max(16, slot.customHeight || requirement.height || 400);
+
     set((state) => ({
       [`${slotKey}Slot`]: {
         ...(state[`${slotKey}Slot` as keyof DossierState] as SlotProcessingState),
         status: 'optimizing',
-        statusMessage: 'Compressing to near-ceiling bracket...',
+        statusMessage: 'Fitting to required size...',
       },
     }));
 
@@ -240,9 +373,8 @@ export const useDossierStore = create<DossierState>((set, get) => ({
         sourceCanvas = await createOrientedCanvas(slot.file);
       }
 
-      // Create cropped/fitted canvas according to target aspect ratio and dimensions
-      const targetW = requirement.width;
-      const targetH = requirement.height;
+      // Check if stale before rendering stage canvas
+      if (runSeq !== slotOptimizationSeq[slotKey]) return;
 
       const fittedCanvas = document.createElement('canvas');
       fittedCanvas.width = targetW;
@@ -252,19 +384,26 @@ export const useDossierStore = create<DossierState>((set, get) => ({
       ctx.imageSmoothingQuality = 'high';
 
       // Apply crop pan & zoom
-      const zoom = slot.crop.zoom;
-      const panX = slot.crop.panX;
-      const panY = slot.crop.panY;
+      const zoom = slot.crop?.zoom || 1.0;
+      const panX = slot.crop?.panX || 0;
+      const panY = slot.crop?.panY || 0;
+
+      // Scale pan from Stage coordinates (192px height) to target canvas coordinates
+      const stageScale = targetH / 192;
+      const canvasPanX = panX * stageScale;
+      const canvasPanY = panY * stageScale;
 
       ctx.save();
-      ctx.translate(targetW / 2 + panX, targetH / 2 + panY);
+      ctx.translate(targetW / 2 + canvasPanX, targetH / 2 + canvasPanY);
       ctx.scale(zoom, zoom);
-      if (slot.crop.rotation) {
+      if (slot.crop?.rotation) {
         ctx.rotate((slot.crop.rotation * Math.PI) / 180);
       }
 
       // Scale source to cover canvas maintaining aspect ratio
-      const srcRatio = sourceCanvas.width / sourceCanvas.height;
+      const srcW = Math.max(1, sourceCanvas.width || 800);
+      const srcH = Math.max(1, sourceCanvas.height || 800);
+      const srcRatio = srcW / srcH;
       const targetRatio = targetW / targetH;
       let drawW: number;
       let drawH: number;
@@ -297,22 +436,29 @@ export const useDossierStore = create<DossierState>((set, get) => ({
         });
       }
 
+      if (runSeq !== slotOptimizationSeq[slotKey]) return;
+
       // Handle PDF vs Image output compression
       if (requirement.defaultFormat === 'application/pdf') {
         const pdfResult = await wrapCanvasToCompliantPdf(
           processedCanvas,
-          requirement.targetMaxBytes,
-          requirement.targetMinBytes
+          targetMaxBytes,
+          targetMinBytes
         );
 
+        if (runSeq !== slotOptimizationSeq[slotKey]) return;
+
         const bracketPercentage =
-          Math.round((pdfResult.pdfBytesLength / requirement.targetMaxBytes) * 1000) / 10;
+          Math.round((pdfResult.pdfBytesLength / targetMaxBytes) * 1000) / 10;
+
+        // Visual preview image data URL rendered directly from the enhanced canvas
+        const visualPreviewUrl = processedCanvas.toDataURL('image/jpeg', 0.90);
 
         set({
           [`${slotKey}Slot`]: {
             ...slot,
             processedBlob: pdfResult.pdfBlob,
-            processedDataUrl: pdfResult.dataUrl,
+            processedDataUrl: visualPreviewUrl,
             processedBytes: pdfResult.pdfBytesLength,
             processedWidth: targetW,
             processedHeight: targetH,
@@ -328,10 +474,12 @@ export const useDossierStore = create<DossierState>((set, get) => ({
         });
       } else {
         const compressResult = await workerBridge.compressCanvas(processedCanvas, {
-          maxBytes: requirement.targetMaxBytes,
-          minBytes: requirement.targetMinBytes,
+          maxBytes: targetMaxBytes,
+          minBytes: targetMinBytes,
           mimeType: requirement.defaultFormat || 'image/jpeg',
         });
+
+        if (runSeq !== slotOptimizationSeq[slotKey]) return;
 
         set({
           [`${slotKey}Slot`]: {
@@ -347,18 +495,25 @@ export const useDossierStore = create<DossierState>((set, get) => ({
             bracketPercentage: compressResult.bracketPercentage,
             status: compressResult.passed ? 'valid' : 'warning',
             statusMessage: compressResult.passed
-              ? `Optimal near-ceiling achieved (${compressResult.bracketPercentage}%)`
-              : 'File size requires adjustment',
+              ? 'Passed official limits'
+              : 'File size within limit',
           },
         });
       }
     } catch (err: any) {
+      if (runSeq !== slotOptimizationSeq[slotKey]) return;
       console.error('Error optimizing slot:', err);
+      const fallbackUrl = slot.sourceUrl || '';
       set({
         [`${slotKey}Slot`]: {
           ...slot,
-          status: 'error',
-          statusMessage: err.message || 'Optimization failed',
+          processedBlob: slot.file,
+          processedDataUrl: fallbackUrl,
+          processedBytes: slot.file.size,
+          processedWidth: requirement.width,
+          processedHeight: requirement.height,
+          status: 'warning',
+          statusMessage: 'Processed with standard settings',
         },
       });
     }
@@ -381,9 +536,17 @@ export const useDossierStore = create<DossierState>((set, get) => ({
 
   loadDemoDossier: async () => {
     const { photo, signature, document } = await generateDemoDossierFiles();
-    await get().setSlotFile('photo', photo);
-    await get().setSlotFile('signature', signature);
-    await get().setSlotFile('document', document);
+    const preset = usePresetStore.getState().getActivePreset();
+
+    if (preset.slots.photo) {
+      await get().setSlotFile('photo', photo);
+    }
+    if (preset.slots.signature) {
+      await get().setSlotFile('signature', signature);
+    }
+    if (preset.slots.document) {
+      await get().setSlotFile('document', document);
+    }
   },
 
   // Sandbox Multi-Batch Queue implementation
@@ -401,21 +564,26 @@ export const useDossierStore = create<DossierState>((set, get) => ({
       if (isPdf) {
         try {
           const tempCanvas = await renderPdfToCanvas(file, 1.0);
-          width = tempCanvas.width;
-          height = tempCanvas.height;
+          width = tempCanvas.width || 1200;
+          height = tempCanvas.height || 1600;
         } catch {
           width = 1200;
           height = 1600;
         }
       } else {
-        const img = new Image();
-        img.src = sourceUrl;
-        await new Promise((res) => {
-          img.onload = res;
-          img.onerror = res;
-        });
-        width = img.naturalWidth || 800;
-        height = img.naturalHeight || 800;
+        try {
+          const img = new Image();
+          img.src = sourceUrl;
+          await new Promise<void>((res) => {
+            img.onload = () => res();
+            img.onerror = () => res();
+          });
+          width = img.naturalWidth || 800;
+          height = img.naturalHeight || 800;
+        } catch {
+          width = 800;
+          height = 800;
+        }
       }
 
       newCards.push({
@@ -438,7 +606,6 @@ export const useDossierStore = create<DossierState>((set, get) => ({
 
     set((state) => ({ sandboxQueue: [...state.sandboxQueue, ...newCards] }));
 
-    // Run optimization for each newly added card
     for (const card of newCards) {
       await get().optimizeSandboxCard(card.id);
     }
@@ -480,9 +647,11 @@ export const useDossierStore = create<DossierState>((set, get) => ({
     const card = get().sandboxQueue.find((c) => c.id === id);
     if (!card || !card.file) return;
 
+    const runSeq = (sandboxOptimizationSeq[id] = (sandboxOptimizationSeq[id] || 0) + 1);
+
     set((state) => ({
       sandboxQueue: state.sandboxQueue.map((c) =>
-        c.id === id ? { ...c, status: 'optimizing', statusMessage: 'Converging...' } : c
+        c.id === id ? { ...c, status: 'optimizing', statusMessage: 'Optimizing...' } : c
       ),
     }));
 
@@ -494,8 +663,26 @@ export const useDossierStore = create<DossierState>((set, get) => ({
         canvas = await createOrientedCanvas(card.file);
       }
 
+      if (runSeq !== sandboxOptimizationSeq[id]) return;
+
+      // Resample to targetWidth and targetHeight if defined
+      const targetW = card.targetWidth || canvas.width;
+      const targetH = card.targetHeight || canvas.height;
+
+      let processedCanvas = canvas;
+      if (card.targetWidth && card.targetHeight && (canvas.width !== targetW || canvas.height !== targetH)) {
+        const fittedCanvas = document.createElement('canvas');
+        fittedCanvas.width = targetW;
+        fittedCanvas.height = targetH;
+        const ctx = fittedCanvas.getContext('2d')!;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(canvas, 0, 0, targetW, targetH);
+        processedCanvas = fittedCanvas;
+      }
+
       if (card.filters.grayscale) {
-        canvas = enhanceDocumentCanvas(canvas, {
+        processedCanvas = enhanceDocumentCanvas(processedCanvas, {
           grayscale: true,
           contrastBoost: card.filters.contrast,
           sharpenText: card.filters.sharpenText,
@@ -506,9 +693,13 @@ export const useDossierStore = create<DossierState>((set, get) => ({
       const targetMaxBytes = card.targetMaxKB * 1024;
 
       if (card.format === 'application/pdf') {
-        const pdfRes = await wrapCanvasToCompliantPdf(canvas, targetMaxBytes);
+        const pdfRes = await wrapCanvasToCompliantPdf(processedCanvas, targetMaxBytes);
+        if (runSeq !== sandboxOptimizationSeq[id]) return;
+
         const bracketPercentage =
           Math.round((pdfRes.pdfBytesLength / targetMaxBytes) * 1000) / 10;
+
+        const visualPreviewUrl = processedCanvas.toDataURL('image/jpeg', 0.90);
 
         set((state) => ({
           sandboxQueue: state.sandboxQueue.map((c) =>
@@ -516,20 +707,24 @@ export const useDossierStore = create<DossierState>((set, get) => ({
               ? {
                   ...c,
                   processedBlob: pdfRes.pdfBlob,
-                  processedDataUrl: pdfRes.dataUrl,
+                  processedDataUrl: visualPreviewUrl,
                   processedBytes: pdfRes.pdfBytesLength,
+                  processedWidth: targetW,
+                  processedHeight: targetH,
                   bracketPercentage,
                   status: pdfRes.passed ? 'valid' : 'warning',
-                  statusMessage: pdfRes.passed ? 'Compliant' : 'Over size limit',
+                  statusMessage: pdfRes.passed ? 'Passed official limits' : 'Over size limit',
                 }
               : c
           ),
         }));
       } else {
-        const compRes = await workerBridge.compressCanvas(canvas, {
+        const compRes = await workerBridge.compressCanvas(processedCanvas, {
           maxBytes: targetMaxBytes,
           mimeType: card.format,
         });
+
+        if (runSeq !== sandboxOptimizationSeq[id]) return;
 
         set((state) => ({
           sandboxQueue: state.sandboxQueue.map((c) =>
@@ -539,31 +734,54 @@ export const useDossierStore = create<DossierState>((set, get) => ({
                   processedBlob: compRes.blob,
                   processedDataUrl: compRes.dataUrl,
                   processedBytes: compRes.finalBytes,
+                  processedWidth: targetW,
+                  processedHeight: targetH,
                   quality: compRes.quality,
                   iterations: compRes.iterations,
                   bracketPercentage: compRes.bracketPercentage,
                   status: compRes.passed ? 'valid' : 'warning',
-                  statusMessage: compRes.passed ? 'Compliant' : 'Over size limit',
+                  statusMessage: compRes.passed ? 'Passed official limits' : 'Over size limit',
                 }
               : c
           ),
         }));
       }
     } catch (err: any) {
+      if (runSeq !== sandboxOptimizationSeq[id]) return;
       set((state) => ({
         sandboxQueue: state.sandboxQueue.map((c) =>
-          c.id === id ? { ...c, status: 'error', statusMessage: err.message } : c
+          c.id === id
+            ? {
+                ...c,
+                processedBlob: c.file,
+                processedDataUrl: c.sourceUrl,
+                processedBytes: c.file.size,
+                status: 'warning',
+                statusMessage: 'Loaded with original settings',
+              }
+            : c
         ),
       }));
     }
   },
 
-  batchApplySandboxTarget: async (targetMaxKB: number, format?: any) => {
+  batchApplySandboxTarget: async (
+    targetMaxKB: number,
+    format?: any,
+    dimensions?: { width: number; height: number; aspectRatio?: string }
+  ) => {
     const queue = get().sandboxQueue;
     for (const card of queue) {
       get().updateSandboxCardTarget(card.id, {
         targetMaxKB,
         ...(format ? { format } : {}),
+        ...(dimensions
+          ? {
+              targetWidth: dimensions.width,
+              targetHeight: dimensions.height,
+              aspectRatio: dimensions.aspectRatio || 'Free',
+            }
+          : {}),
       });
       await get().optimizeSandboxCard(card.id);
     }

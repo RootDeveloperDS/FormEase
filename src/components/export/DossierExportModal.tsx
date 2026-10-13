@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { X, Download, ShieldCheck, CheckCircle2, AlertTriangle, FileArchive, ArrowDownToLine } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { X, Download, ShieldCheck, CheckCircle2, AlertTriangle, ArrowDownToLine } from 'lucide-react';
 import { useDossierStore } from '../../store/useDossierStore';
 import { usePresetStore } from '../../store/usePresetStore';
 import { formatBytes, formatDimensions } from '../../utils/byteFormatter';
 import { bundleAndDownloadDossierZip, getStandardizedFileName } from '../../utils/zipBundler';
 import type { DossierExportItem } from '../../utils/zipBundler';
 import { ActionButton } from '../common/ActionButton';
+import { FormEaseLogo } from '../common/FormEaseLogo';
 import { saveAs } from '../../utils/fileSaver';
 
 interface DossierExportModalProps {
@@ -17,6 +19,14 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
   const { photoSlot, signatureSlot, documentSlot, activeMode, sandboxQueue } = useDossierStore();
   const activePreset = usePresetStore((s) => s.getActivePreset());
   const [isExporting, setIsExporting] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -121,23 +131,28 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
     }
   };
 
-  return (
+  const modalContent = (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="export-modal-title"
-      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+      onClick={onClose}
     >
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div
+        className="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-950/40">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-              <FileArchive className="w-5 h-5" />
-            </div>
+            <FormEaseLogo size={36} />
             <div>
-              <h2 id="export-modal-title" className="text-base font-bold text-slate-100">
-                Verified Dossier Pre-Flight Audit
+              <h2 id="export-modal-title" className="text-base font-bold text-slate-100 flex items-center gap-2">
+                <span>Verified Dossier Pre-Flight Audit</span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  Ready to Bundle
+                </span>
               </h2>
               <p className="text-xs text-slate-400">
                 All files formatted, verified, and bundled for portal submission
@@ -243,4 +258,6 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };

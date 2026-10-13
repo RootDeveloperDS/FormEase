@@ -10,21 +10,28 @@ interface GlobalBatchBarProps {
 export const GlobalBatchBar: React.FC<GlobalBatchBarProps> = ({ onOpenExportModal }) => {
   const { sandboxQueue, batchApplySandboxTarget, clearAllSandbox } = useDossierStore();
   const [batchTargetKB, setBatchTargetKB] = useState(50);
+  const [batchWidth, setBatchWidth] = useState<number>(350);
+  const [batchHeight, setBatchHeight] = useState<number>(350);
+  const [applyDimensions, setApplyDimensions] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
 
   const handleBatchApply = async () => {
     setIsApplying(true);
     try {
-      await batchApplySandboxTarget(batchTargetKB);
+      await batchApplySandboxTarget(
+        batchTargetKB,
+        undefined,
+        applyDimensions ? { width: batchWidth, height: batchHeight } : undefined
+      );
     } finally {
       setIsApplying(false);
     }
   };
 
   return (
-    <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-wrap items-center justify-between gap-4">
+    <div className="p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+        <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
           <Layers className="w-5 h-5" />
         </div>
         <div>
@@ -35,13 +42,14 @@ export const GlobalBatchBar: React.FC<GlobalBatchBarProps> = ({ onOpenExportModa
             </span>
           </h3>
           <p className="text-xs text-slate-400">
-            Apply uniform compression ceilings across all queued files in 1 click
+            Apply uniform compression ceilings and pixel dimensions across all files in 1 click
           </p>
         </div>
       </div>
 
       {/* Quick Controls */}
       <div className="flex flex-wrap items-center gap-2.5">
+        {/* Batch Ceiling */}
         <div className="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
           <SlidersHorizontal className="w-3.5 h-3.5 text-slate-400" />
           <span className="text-xs text-slate-400">Ceiling:</span>
@@ -56,13 +64,50 @@ export const GlobalBatchBar: React.FC<GlobalBatchBarProps> = ({ onOpenExportModa
           <span className="text-xs text-slate-400">KB</span>
         </div>
 
+        {/* Optional Batch Dimensions Toggle */}
+        <div className="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+          <label className="flex items-center gap-1.5 cursor-pointer text-slate-300 select-none">
+            <input
+              type="checkbox"
+              checked={applyDimensions}
+              onChange={(e) => setApplyDimensions(e.target.checked)}
+              className="accent-emerald-500 rounded"
+            />
+            <span>Batch Dims:</span>
+          </label>
+          {applyDimensions && (
+            <div className="flex items-center gap-1 font-mono text-xs">
+              <input
+                type="number"
+                min="50"
+                max="4000"
+                value={batchWidth}
+                onChange={(e) => setBatchWidth(Number(e.target.value))}
+                className="w-14 bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-center text-white"
+                placeholder="W"
+              />
+              <span className="text-slate-500">×</span>
+              <input
+                type="number"
+                min="50"
+                max="4000"
+                value={batchHeight}
+                onChange={(e) => setBatchHeight(Number(e.target.value))}
+                className="w-14 bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-center text-white"
+                placeholder="H"
+              />
+              <span className="text-[10px] text-slate-400">px</span>
+            </div>
+          )}
+        </div>
+
         <button
           type="button"
           onClick={handleBatchApply}
           disabled={isApplying || sandboxQueue.length === 0}
-          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 flex items-center gap-1.5 disabled:opacity-50"
+          className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 disabled:opacity-50 shadow-md shadow-emerald-500/20"
         >
-          <Zap className="w-3.5 h-3.5 text-emerald-400" /> Apply to All Cards
+          <Zap className="w-3.5 h-3.5" /> Apply to All Cards
         </button>
 
         <ActionButton
