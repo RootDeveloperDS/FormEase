@@ -30,9 +30,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenExportModal }) => {
             <span className="text-base font-extrabold tracking-tight text-white">
               Form<span className="text-emerald-400">Ease</span>
             </span>
-            <span className="hidden sm:inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 uppercase tracking-wider">
-              Client-Side
+            <span className="inline-flex items-center text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 uppercase tracking-wider">
+              v3.0
             </span>
+            {/* <span className="hidden sm:inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-850 border border-slate-800 text-slate-400 uppercase tracking-wider">
+              Client-Side
+            </span> */}
           </div>
         </div>
 
@@ -73,13 +76,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenExportModal }) => {
           {activeMode === 'dossier' && <PresetSelector />}
 
           {/* Quiet Sovereign Telemetry Pill */}
-          <div
+          {/* <div
             className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono text-emerald-400 font-medium"
             title="FormEase processes 100% locally in browser memory. 0 outbound network calls."
           >
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span>{isFullyOffline ? '0 Outbound' : 'Local Memory'}</span>
-          </div>
+          </div> */}
 
           {/* Master Export Button */}
           <ActionButton

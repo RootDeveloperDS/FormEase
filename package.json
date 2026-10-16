@@ -1,13 +1,14 @@
 {
   "name": "formease",
   "private": true,
-  "version": "0.0.0",
+  "version": "3.0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite preview --port 3000 --host 0.0.0.0"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.2.0",

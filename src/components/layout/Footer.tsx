@@ -367,6 +367,9 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-800/60 text-xs">
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-white">FormEase</span>
+            <span className="text-[10px] font-mono font-bold text-emerald-400 px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+              v3.0
+            </span>
             <span className="text-slate-700">•</span>
             <span>&copy; {new Date().getFullYear()} All rights reserved.</span>
             <span className="text-slate-700">•</span>
