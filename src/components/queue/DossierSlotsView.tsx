@@ -30,17 +30,6 @@ export const DossierSlotsView: React.FC = () => {
     !!signatureSlot.customTargetMaxKB ||
     !!documentSlot.customTargetMaxKB;
 
-  // Determine active slots count and dynamic responsive grid
-  const activeSlotKeys = (['photo', 'signature', 'document'] as const).filter(
-    (k) => !!activePreset.slots[k]
-  );
-
-  const gridClass =
-    activeSlotKeys.length === 1
-      ? 'max-w-lg mx-auto grid-cols-1'
-      : activeSlotKeys.length === 2
-      ? 'max-w-5xl mx-auto grid-cols-1 md:grid-cols-2'
-      : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
 
   const handleSaveCustom = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,8 +92,8 @@ export const DossierSlotsView: React.FC = () => {
         </div>
       )}
 
-      {/* Dynamic Balanced Slots Grid */}
-      <div className={`grid gap-6 ${gridClass}`}>
+      {/* Stacked Horizontal Studio Cards */}
+      <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full">
         {/* SLOT 1: PHOTOGRAPH */}
         {activePreset.slots.photo && <PhotoSlotCard />}
 

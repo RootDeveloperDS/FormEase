@@ -42,7 +42,9 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
         originalFileName: photoSlot.file?.name || 'camera_photo.jpg',
         blob: photoSlot.processedBlob,
         finalBytes: photoSlot.processedBytes,
-        targetMaxBytes: activePreset.slots.photo.targetMaxBytes,
+        targetMaxBytes: photoSlot.customTargetMaxKB
+          ? photoSlot.customTargetMaxKB * 1024
+          : activePreset.slots.photo.targetMaxBytes,
         width: photoSlot.processedWidth,
         height: photoSlot.processedHeight,
         mimeType: photoSlot.mimeType,
@@ -60,7 +62,9 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
         originalFileName: signatureSlot.file?.name || 'phone_signature.jpg',
         blob: signatureSlot.processedBlob,
         finalBytes: signatureSlot.processedBytes,
-        targetMaxBytes: activePreset.slots.signature.targetMaxBytes,
+        targetMaxBytes: signatureSlot.customTargetMaxKB
+          ? signatureSlot.customTargetMaxKB * 1024
+          : activePreset.slots.signature.targetMaxBytes,
         width: signatureSlot.processedWidth,
         height: signatureSlot.processedHeight,
         mimeType: signatureSlot.mimeType,
@@ -78,7 +82,9 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
         originalFileName: documentSlot.file?.name || 'marksheet_scan.pdf',
         blob: documentSlot.processedBlob,
         finalBytes: documentSlot.processedBytes,
-        targetMaxBytes: activePreset.slots.document.targetMaxBytes,
+        targetMaxBytes: documentSlot.customTargetMaxKB
+          ? documentSlot.customTargetMaxKB * 1024
+          : activePreset.slots.document.targetMaxBytes,
         width: documentSlot.processedWidth,
         height: documentSlot.processedHeight,
         mimeType: documentSlot.mimeType,

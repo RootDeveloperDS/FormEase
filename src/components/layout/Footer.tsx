@@ -9,7 +9,6 @@ import {
   ArrowUpRight,
   Sparkles,
   LayoutGrid,
-  Layers,
   CheckCircle2,
   Sliders,
   FileCheck,

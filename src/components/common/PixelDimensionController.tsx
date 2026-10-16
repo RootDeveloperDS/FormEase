@@ -320,7 +320,7 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                 >
                   <Minus className="w-2.5 h-2.5" />
                 </button>
-                <div className="flex-1 flex items-center bg-slate-950 border border-slate-700 rounded-md px-1.5 py-0.5">
+                <div className="min-w-[70px] sm:min-w-[84px] flex items-center bg-slate-950 border border-slate-700/80 rounded-lg px-2 py-1 shadow-inner">
                   <input
                     type="number"
                     min={minWidth}
@@ -329,7 +329,7 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                     onChange={(e) => handleWidthChange(Number(e.target.value))}
                     className="w-full bg-transparent text-xs font-mono font-bold text-white text-center outline-none"
                   />
-                  <span className="text-[10px] font-mono text-slate-500">px</span>
+                  <span className="text-[10px] font-mono text-slate-500 shrink-0 ml-1">px</span>
                 </div>
                 <button
                   type="button"
@@ -381,7 +381,7 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                 >
                   <Minus className="w-2.5 h-2.5" />
                 </button>
-                <div className="flex-1 flex items-center bg-slate-950 border border-slate-700 rounded-md px-1.5 py-0.5">
+                <div className="min-w-[70px] sm:min-w-[84px] flex items-center bg-slate-950 border border-slate-700/80 rounded-lg px-2 py-1 shadow-inner">
                   <input
                     type="number"
                     min={minHeight}
@@ -390,7 +390,7 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                     onChange={(e) => handleHeightChange(Number(e.target.value))}
                     className="w-full bg-transparent text-xs font-mono font-bold text-white text-center outline-none"
                   />
-                  <span className="text-[10px] font-mono text-slate-500">px</span>
+                  <span className="text-[10px] font-mono text-slate-500 shrink-0 ml-1">px</span>
                 </div>
                 <button
                   type="button"

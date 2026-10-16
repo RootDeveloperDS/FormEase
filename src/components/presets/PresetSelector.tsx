@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, ChevronDown, Check, Plus, Globe, X, Edit3, Settings2 } from 'lucide-react';
+import { Search, ChevronDown, Check, Plus, Globe, X, Settings2 } from 'lucide-react';
 import { usePresetStore } from '../../store/usePresetStore';
 import { useDossierStore } from '../../store/useDossierStore';
 import { CustomPresetModal } from './CustomPresetModal';
-import { formatBytes } from '../../utils/byteFormatter';
 
 export const PresetSelector: React.FC = () => {
   const { allPresets, activePresetId, setActivePreset, getActivePreset } = usePresetStore();

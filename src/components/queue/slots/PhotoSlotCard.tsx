@@ -15,6 +15,8 @@ import {
   X,
   AlertCircle,
   Sparkles,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useDossierStore } from '../../../store/useDossierStore';
 import type { CropState } from '../../../store/useDossierStore';
@@ -49,6 +51,7 @@ export const PhotoSlotCard: React.FC = () => {
   const [isSavePresetModalOpen, setIsSavePresetModalOpen] = useState(false);
   const [customPresetName, setCustomPresetName] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
   // Local crop state for butter-smooth 120 FPS interaction with ZERO canvas resets
   const [localCrop, setLocalCrop] = useState<CropState>({
@@ -169,10 +172,24 @@ export const PhotoSlotCard: React.FC = () => {
   const targetH = photoSlot.customHeight || requirement.height;
   const aspectRatioVal = photoSlot.customAspectRatioValue || requirement.aspectRatioValue || targetW / targetH;
 
-  // Exact Stage Box Dimensions: guarantees strict framing
-  const maxStageHeight = 192; // 12rem (h-48)
-  const stageHeight = maxStageHeight;
-  const stageWidth = Math.min(320, Math.max(100, Math.round(stageHeight * aspectRatioVal)));
+  // Exact Stage Box Dimensions: scales strictly with user-configured aspect ratio
+  // Fits proportionally within max studio viewport boundaries [280px width x 192px height]
+  const containerMaxW = 280;
+  const containerMaxH = 192;
+  const maxBoxAspect = containerMaxW / containerMaxH; // ~1.458
+
+  let stageWidth: number;
+  let stageHeight: number;
+
+  if (aspectRatioVal >= maxBoxAspect) {
+    // Landscape or ultra-wide ratio (e.g. 4000x80 or 600x200)
+    stageWidth = containerMaxW;
+    stageHeight = Math.max(8, Math.round(containerMaxW / aspectRatioVal));
+  } else {
+    // Portrait, square, or ultra-tall ratio (e.g. 55x3500 or 350x450)
+    stageHeight = containerMaxH;
+    stageWidth = Math.max(8, Math.round(containerMaxH * aspectRatioVal));
+  }
 
   // Pointer Drag Handlers (120 FPS GPU-accelerated motion with ZERO blanking)
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -284,81 +301,67 @@ export const PhotoSlotCard: React.FC = () => {
   const isRawOverLimit = photoSlot.file ? photoSlot.sourceBytes > targetMaxBytes : false;
 
   return (
-    <div className="flex flex-col bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all justify-between min-h-[490px]">
-      <div>
-        {/* Clean, Premium Header: Uncluttered, Spacious, Zero Noise */}
-        <div className="flex items-center justify-between mb-3.5 pb-3 border-b border-slate-800/80">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0 shadow-sm">
-              <Camera className="w-4 h-4" />
+    <div className="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden group hover:border-slate-700/80 transition-all">
+      {/* Clean, Premium Header: Uncluttered, Spacious, with Quick Actions */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800/80">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0 shadow-sm">
+            <Camera className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-100 tracking-tight">Slot 1: Photograph</h3>
+              {photoSlot.customTargetMaxKB && (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold shrink-0">
+                  Custom
+                </span>
+              )}
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-100 truncate">Slot 1: Photograph</h3>
-                {photoSlot.customTargetMaxKB && (
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold shrink-0">
-                    Custom
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-slate-400 truncate">
-                Official target: &lt; {Math.round(targetMaxBytes / 1024)} KB • {targetW}×{targetH} px
-              </p>
-            </div>
+            <p className="text-xs text-slate-400 truncate">
+              Official target: &lt; {Math.round(targetMaxBytes / 1024)} KB • {targetW}×{targetH} px ({selectedRatio})
+            </p>
           </div>
         </div>
 
+        {/* Top Right Slot Actions (when file exists) */}
+        {photoSlot.file && (
+          <div className="flex items-center gap-2">
+            <StatusBadge status={photoSlot.status} label={photoSlot.status === 'valid' ? '100% Compliant' : undefined} />
+            <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
+            <label className="text-xs font-semibold text-slate-300 hover:text-white cursor-pointer px-2.5 py-1.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/70 flex items-center gap-1.5 transition-all">
+              <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden sm:inline">Replace</span>
+              <input type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
+            </label>
+            <button
+              type="button"
+              onClick={() => clearSlot('photo')}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+              title="Remove photograph"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveSingle}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-500/20 transition-all"
+            >
+              <ArrowDownToLine className="w-3.5 h-3.5" />
+              <span>Save Photo</span>
+            </button>
+          </div>
+        )}
+      </div>
 
-
-        {/* Slot Body: Loaded vs Empty State */}
-        {photoSlot.file ? (
-          <div className="space-y-3">
-            {/* Consolidated Before/After & Official Validation Strip: Clean, Logical, Beautiful */}
-            <div className="p-2.5 rounded-2xl bg-slate-950 border border-slate-800/90 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-slate-400 font-medium text-[11px] shrink-0">Raw:</span>
-                <span
-                  className={`font-mono text-xs font-bold shrink-0 ${
-                    isRawOverLimit ? 'text-rose-400' : 'text-slate-300'
-                  }`}
-                >
-                  {formatBytes(photoSlot.sourceBytes)}
-                </span>
-                {isRawOverLimit ? (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/25 text-rose-300 border border-rose-500/50 flex items-center gap-1 shadow-sm shadow-rose-500/20 shrink-0">
-                    <AlertCircle className="w-3 h-3 text-rose-400" />
-                    {'>'}{Math.round(targetMaxBytes / 1024)} KB
-                  </span>
-                ) : (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 shrink-0">
-                    OK
-                  </span>
-                )}
-              </div>
-
-              <span className="text-slate-600 font-bold shrink-0 px-1">➔</span>
-
-              <div className="flex items-center gap-1.5 min-w-0">
-                {/* <span className="text-slate-400 font-medium text-[11px] shrink-0">Ready:</span> */}
-                <span className="font-mono text-xs font-bold text-emerald-400 shrink-0">
-                  {formatBytes(photoSlot.processedBytes)}
-                </span>
-                {photoSlot.sourceBytes > photoSlot.processedBytes && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">
-                    -{Math.round((1 - photoSlot.processedBytes / photoSlot.sourceBytes) * 100)}%
-                  </span>
-                )}
-              </div>
-
-              <div className="shrink-0 pl-1">
-                <StatusBadge status={photoSlot.status} label={photoSlot.status === 'valid' ? ' ' : undefined} />
-              </div>
-            </div>
-
-            {/* Visual Studio Stage: 100% Reliable Hardware-Accelerated Rendering (Zero Blank Frames) */}
+      {/* Main Studio Body: Loaded vs Empty State */}
+      {photoSlot.file ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* LEFT COLUMN: Visual Viewfinder Studio Stage (~42% on desktop) */}
+          <div className="lg:col-span-5 flex flex-col items-center space-y-3">
+            {/* Viewfinder Frame */}
             <div
               ref={containerRef}
-              className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center h-52 group/preview shadow-md"
+              className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center h-60 w-full group/preview shadow-md"
             >
               {/* Exact Stage Box with Strict Aspect Ratio */}
               <div
@@ -375,31 +378,43 @@ export const PhotoSlotCard: React.FC = () => {
                 }`}
                 style={{ width: `${stageWidth}px`, height: `${stageHeight}px` }}
               >
-                {/* 100% Native Image Rendering: Butter-smooth GPU transforms, NEVER blanks or clears! */}
                 {photoSlot.sourceUrl && (
-                  <img
-                    src={photoSlot.sourceUrl}
-                    alt="Photograph preview"
-                    draggable={false}
-                    className="w-full h-full object-cover pointer-events-none select-none block"
-                    style={{
-                      transform: isHoldingOriginal
-                        ? 'none'
-                        : `translate(${localCrop.panX}px, ${localCrop.panY}px) scale(${localCrop.zoom}) rotate(${localCrop.rotation}deg)`,
-                      transformOrigin: 'center center',
-                      transition: isDragging ? 'none' : 'transform 0.12s ease-out',
-                    }}
-                  />
+                  isHoldingOriginal ? (
+                    <img
+                      src={photoSlot.sourceUrl}
+                      alt="Original photograph"
+                      draggable={false}
+                      className="w-full h-full object-cover pointer-events-none select-none block"
+                    />
+                  ) : !isEditorOpen && photoSlot.processedDataUrl ? (
+                    <img
+                      src={photoSlot.processedDataUrl}
+                      alt="Photograph preview"
+                      draggable={false}
+                      className="w-full h-full object-cover pointer-events-none select-none block"
+                    />
+                  ) : (
+                    <img
+                      src={photoSlot.sourceUrl}
+                      alt="Photograph preview"
+                      draggable={false}
+                      className="w-full h-full object-cover pointer-events-none select-none block"
+                      style={{
+                        transform: `translate(${localCrop.panX}px, ${localCrop.panY}px) scale(${localCrop.zoom}) rotate(${localCrop.rotation}deg)`,
+                        transformOrigin: 'center center',
+                        transition: isDragging ? 'none' : 'transform 0.12s ease-out',
+                      }}
+                    />
+                  )
                 )}
 
-                {/* Beginner-Friendly Face Alignment Guide Overlay */}
-                {isEditorOpen && (
+                {/* Beginner-Friendly Face Alignment Guide Overlay (only when viewport is sufficiently sized) */}
+                {isEditorOpen && stageWidth >= 60 && stageHeight >= 60 && (
                   <svg
                     className="absolute inset-0 w-full h-full pointer-events-none z-10 animate-in fade-in duration-150"
                     viewBox="0 0 100 100"
                     preserveAspectRatio="xMidYMid meet"
                   >
-                    {/* Center Axis */}
                     <line
                       x1="50"
                       y1="5"
@@ -410,7 +425,6 @@ export const PhotoSlotCard: React.FC = () => {
                       strokeDasharray="2 2"
                       opacity="0.75"
                     />
-                    {/* Head Oval Outline */}
                     <ellipse
                       cx="50"
                       cy="50"
@@ -422,7 +436,6 @@ export const PhotoSlotCard: React.FC = () => {
                       strokeDasharray="3 2"
                       opacity="0.85"
                     />
-                    {/* Top of Head Guide */}
                     <line
                       x1="30"
                       y1="18"
@@ -435,7 +448,6 @@ export const PhotoSlotCard: React.FC = () => {
                     <text x="50" y="14" fill="#38bdf8" fontSize="3.5" textAnchor="middle" fontWeight="bold">
                       Top of Head
                     </text>
-                    {/* Eyes Guide */}
                     <line
                       x1="24"
                       y1="44"
@@ -448,7 +460,6 @@ export const PhotoSlotCard: React.FC = () => {
                     <text x="50" y="41" fill="#facc15" fontSize="3.5" textAnchor="middle" fontWeight="bold">
                       Eyes Here
                     </text>
-                    {/* Chin Guide */}
                     <line
                       x1="35"
                       y1="82"
@@ -466,7 +477,7 @@ export const PhotoSlotCard: React.FC = () => {
               </div>
 
               {/* Dimensions pill */}
-              <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-900/90 border border-slate-700 text-[10px] font-mono text-slate-300 pointer-events-none">
+              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-[11px] font-mono font-semibold text-slate-300 pointer-events-none shadow-sm">
                 {formatDimensions(photoSlot.processedWidth || targetW, photoSlot.processedHeight || targetH)}
               </div>
 
@@ -479,16 +490,143 @@ export const PhotoSlotCard: React.FC = () => {
                   onMouseLeave={() => setIsHoldingOriginal(false)}
                   onTouchStart={() => setIsHoldingOriginal(true)}
                   onTouchEnd={() => setIsHoldingOriginal(false)}
-                  className="absolute top-2 right-2 px-2 py-1 rounded-xl bg-slate-900/90 border border-slate-700 text-[11px] font-semibold text-slate-300 hover:text-white flex items-center gap-1 shadow-sm select-none"
+                  className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 shadow-sm select-none transition-all"
                   title="Hold to see original unaligned photo"
                 >
-                  <Eye className="w-3 h-3 text-blue-400" />
-                  <span>{isHoldingOriginal ? 'Raw Original' : 'Hold to Diff'}</span>
+                  <Eye className="w-3.5 h-3.5 text-blue-400" />
+                  <span>{isHoldingOriginal ? 'Raw Original' : 'Hold to Compare'}</span>
                 </button>
               )}
             </div>
 
-            {/* Live Precision Byte Counter */}
+            {/* Beginner-Friendly Crop & Position Button */}
+            <button
+              type="button"
+              onClick={() => setIsEditorOpen(!isEditorOpen)}
+              className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
+                isEditorOpen
+                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20'
+                  : 'bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700'
+              }`}
+            >
+              <Crop className="w-3.5 h-3.5" />
+              <span>{isEditorOpen ? '✓ Done Alignment (Position Locked)' : '✂️ Adjust Face Crop & Framing'}</span>
+            </button>
+
+            {/* Expanded Tactile Editor Controls */}
+            {isEditorOpen && (
+              <div className="w-full p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400 font-medium">Zoom Level:</span>
+                  <span className="font-mono text-emerald-400 font-bold">
+                    {Math.round(localCrop.zoom * 100)}%
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextZoom = Math.max(0.6, Math.round((localCrop.zoom - 0.1) * 100) / 100);
+                      const updated = { ...localCrop, zoom: nextZoom };
+                      setLocalCrop(updated);
+                      commitCropAndOptimize(updated);
+                    }}
+                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                    title="Zoom Out"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                  <input
+                    type="range"
+                    min="0.6"
+                    max="3.0"
+                    step="0.05"
+                    value={localCrop.zoom}
+                    onChange={(e) => {
+                      const updated = { ...localCrop, zoom: Number(e.target.value) };
+                      setLocalCrop(updated);
+                      commitCropAndOptimize(updated);
+                    }}
+                    className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextZoom = Math.min(3.0, Math.round((localCrop.zoom + 0.1) * 100) / 100);
+                      const updated = { ...localCrop, zoom: nextZoom };
+                      setLocalCrop(updated);
+                      commitCropAndOptimize(updated);
+                    }}
+                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                    title="Zoom In"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextRot = ((localCrop.rotation || 0) + 90) % 360;
+                      const updated = { ...localCrop, rotation: nextRot };
+                      setLocalCrop(updated);
+                      commitCropAndOptimize(updated);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white text-xs flex items-center gap-1"
+                    title="Rotate 90 degrees"
+                  >
+                    <RotateCw className="w-3.5 h-3.5 text-blue-400" />
+                    <span>90°</span>
+                  </button>
+                </div>
+
+                <p className="text-[10px] text-slate-400 text-center">
+                  💡 Drag directly on the face • Scroll wheel to zoom • Arrow keys nudge
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT COLUMN: Control Deck & Compliance Metrics (~58% on desktop) */}
+          <div className="lg:col-span-7 space-y-4">
+            {/* 1. Before ➔ After Compression Strip: Clean, Spacious, Confident */}
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400 font-medium">Original File:</span>
+                <span
+                  className={`font-mono font-bold ${
+                    isRawOverLimit ? 'text-rose-400' : 'text-slate-300'
+                  }`}
+                >
+                  {formatBytes(photoSlot.sourceBytes)}
+                </span>
+                {isRawOverLimit ? (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1 shadow-sm shadow-rose-500/20">
+                    <AlertCircle className="w-3 h-3 text-rose-400" />
+                    Exceeds {Math.round(targetMaxBytes / 1024)} KB
+                  </span>
+                ) : (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400">
+                    OK
+                  </span>
+                )}
+              </div>
+
+              <span className="text-slate-600 font-bold px-1 hidden sm:inline">➔</span>
+
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400 font-medium">Optimized:</span>
+                <span className="font-mono font-bold text-emerald-400">
+                  {formatBytes(photoSlot.processedBytes)}
+                </span>
+                {photoSlot.sourceBytes > photoSlot.processedBytes && (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                    -{Math.round((1 - photoSlot.processedBytes / photoSlot.sourceBytes) * 100)}%
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 2. Live Precision Byte Counter */}
             <ByteCounter
               currentBytes={photoSlot.processedBytes}
               targetMaxBytes={targetMaxBytes}
@@ -496,213 +634,123 @@ export const PhotoSlotCard: React.FC = () => {
               bracketPercentage={photoSlot.bracketPercentage}
             />
 
-            {/* Tactile In-Card Precision Controls */}
-            <div className="space-y-3">
-              {/* File Size Ceiling Controller */}
-              <SizeCeilingController
-                currentKB={tweakMaxKB}
-                defaultKB={requirement ? Math.round(requirement.targetMaxBytes / 1024) : 50}
-                minKB={5}
-                maxKB={2000}
-                presets={[
-                  { kb: 20, badge: 'Small' },
-                  { kb: 50, badge: 'UPSC/SSC' },
-                  { kb: 100, badge: 'Govt' },
-                  { kb: 240, badge: 'US Visa' },
-                ]}
-                accentColor="emerald"
-                label="Photo Size Limit"
-                onChange={(kb) => {
-                  setTweakMaxKB(kb);
-                  updateSlotTarget('photo', { maxKB: kb });
-                }}
-                onReset={() => resetSlotCustomTarget('photo')}
-                showReset={!!photoSlot.customTargetMaxKB}
-              />
+            {/* 3. File Size Ceiling Controller */}
+            <SizeCeilingController
+              currentKB={tweakMaxKB}
+              defaultKB={requirement ? Math.round(requirement.targetMaxBytes / 1024) : 50}
+              minKB={5}
+              maxKB={2000}
+              presets={[
+                { kb: 20, badge: 'Small' },
+                { kb: 50, badge: 'UPSC/SSC' },
+                { kb: 100, badge: 'Govt' },
+                { kb: 240, badge: 'US Visa' },
+              ]}
+              accentColor="emerald"
+              label="Photo Size Limit"
+              onChange={(kb) => {
+                setTweakMaxKB(kb);
+                updateSlotTarget('photo', { maxKB: kb });
+              }}
+              onReset={() => resetSlotCustomTarget('photo')}
+              showReset={!!photoSlot.customTargetMaxKB}
+            />
 
-              {/* Pixel Dimension Controller */}
-              <PixelDimensionController
-                width={tweakWidth}
-                height={tweakHeight}
-                defaultWidth={requirement.width}
-                defaultHeight={requirement.height}
-                defaultRatio={requirement.aspectRatio}
-                slotType="photo"
-                accentColor="emerald"
-                onChange={({ width, height, aspectRatio, aspectRatioValue }) => {
-                  setTweakWidth(width);
-                  setTweakHeight(height);
-                  setSelectedRatio(aspectRatio);
-                  updateSlotTarget('photo', {
-                    width,
-                    height,
-                    aspectRatio,
-                    aspectRatioValue,
-                  });
-                }}
-                onReset={() => {
-                  setTweakWidth(requirement.width);
-                  setTweakHeight(requirement.height);
-                  setSelectedRatio(requirement.aspectRatio);
-                  updateSlotTarget('photo', {
-                    width: requirement.width,
-                    height: requirement.height,
-                    aspectRatio: requirement.aspectRatio,
-                    aspectRatioValue: requirement.aspectRatioValue,
-                  });
-                }}
-                showReset={
-                  tweakWidth !== requirement.width || tweakHeight !== requirement.height
-                }
-              />
-
-              {/* Bookmark Save Action */}
-              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-900 text-[11px]">
-                <span className="text-slate-400">Save custom configuration:</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCustomPresetName(`${activePreset.name} (${tweakMaxKB}KB • ${tweakWidth}×${tweakHeight})`);
-                    setIsSavePresetModalOpen(true);
-                  }}
-                  className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-bold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30"
-                >
-                  <BookmarkPlus className="w-3 h-3" /> Save to My Presets
-                </button>
-              </div>
-            </div>
-
-            {/* Beginner-Friendly Crop & Position Button */}
-            <div className="space-y-2 pt-0.5">
+            {/* 4. Progressive Disclosure Accordion: Advanced Dimensions & Custom Presets */}
+            <div className="border border-slate-800 rounded-2xl bg-slate-950/70 overflow-hidden">
               <button
                 type="button"
-                onClick={() => setIsEditorOpen(!isEditorOpen)}
-                className={`w-full py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
-                  isEditorOpen
-                    ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
-                }`}
+                onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+                className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900/50 transition-colors"
               >
-                <Crop className="w-3.5 h-3.5" />
-                <span>{isEditorOpen ? '✓ Done Alignment (Position Locked)' : '✂️ Crop & Align Face'}</span>
+                <span className="flex items-center gap-2">
+                  <span>⚙️ Pixel Dimensions & Custom Overrides</span>
+                  <span className="font-mono text-[11px] text-slate-400 font-normal">
+                    ({tweakWidth}×{tweakHeight} px • {selectedRatio})
+                  </span>
+                </span>
+                {isAdvancedOpen ? (
+                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                )}
               </button>
 
-              {/* Expanded Tactile Editor Controls */}
-              {isEditorOpen && (
-                <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 animate-in fade-in duration-150">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400 font-medium">Zoom Level:</span>
-                    <span className="font-mono text-emerald-400 font-bold">
-                      {Math.round(localCrop.zoom * 100)}%
-                    </span>
-                  </div>
+              {isAdvancedOpen && (
+                <div className="p-4 pt-2 border-t border-slate-800/80 space-y-3.5 animate-in fade-in duration-150">
+                  <PixelDimensionController
+                    width={tweakWidth}
+                    height={tweakHeight}
+                    defaultWidth={requirement.width}
+                    defaultHeight={requirement.height}
+                    defaultRatio={requirement.aspectRatio}
+                    slotType="photo"
+                    accentColor="emerald"
+                    onChange={({ width, height, aspectRatio, aspectRatioValue }) => {
+                      setTweakWidth(width);
+                      setTweakHeight(height);
+                      setSelectedRatio(aspectRatio);
+                      updateSlotTarget('photo', {
+                        width,
+                        height,
+                        aspectRatio,
+                        aspectRatioValue,
+                      });
+                    }}
+                    onReset={() => {
+                      setTweakWidth(requirement.width);
+                      setTweakHeight(requirement.height);
+                      setSelectedRatio(requirement.aspectRatio);
+                      updateSlotTarget('photo', {
+                        width: requirement.width,
+                        height: requirement.height,
+                        aspectRatio: requirement.aspectRatio,
+                        aspectRatioValue: requirement.aspectRatioValue,
+                      });
+                    }}
+                    showReset={
+                      tweakWidth !== requirement.width || tweakHeight !== requirement.height
+                    }
+                  />
 
-                  <div className="flex items-center gap-2">
+                  {/* Bookmark Save Action */}
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+                    <span className="text-slate-400">Save custom configuration:</span>
                     <button
                       type="button"
                       onClick={() => {
-                        const nextZoom = Math.max(0.6, Math.round((localCrop.zoom - 0.1) * 100) / 100);
-                        const updated = { ...localCrop, zoom: nextZoom };
-                        setLocalCrop(updated);
-                        commitCropAndOptimize(updated);
+                        setCustomPresetName(`${activePreset.name} (${tweakMaxKB}KB • ${tweakWidth}×${tweakHeight})`);
+                        setIsSavePresetModalOpen(true);
                       }}
-                      className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
-                      title="Zoom Out"
+                      className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 transition-colors"
                     >
-                      <ZoomOut className="w-3.5 h-3.5" />
-                    </button>
-                    <input
-                      type="range"
-                      min="0.6"
-                      max="3.0"
-                      step="0.05"
-                      value={localCrop.zoom}
-                      onChange={(e) => {
-                        const updated = { ...localCrop, zoom: Number(e.target.value) };
-                        setLocalCrop(updated);
-                        commitCropAndOptimize(updated);
-                      }}
-                      className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const nextZoom = Math.min(3.0, Math.round((localCrop.zoom + 0.1) * 100) / 100);
-                        const updated = { ...localCrop, zoom: nextZoom };
-                        setLocalCrop(updated);
-                        commitCropAndOptimize(updated);
-                      }}
-                      className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
-                      title="Zoom In"
-                    >
-                      <ZoomIn className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const nextRot = ((localCrop.rotation || 0) + 90) % 360;
-                        const updated = { ...localCrop, rotation: nextRot };
-                        setLocalCrop(updated);
-                        commitCropAndOptimize(updated);
-                      }}
-                      className="px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white text-xs flex items-center gap-1"
-                      title="Rotate 90 degrees"
-                    >
-                      <RotateCw className="w-3.5 h-3.5 text-blue-400" />
-                      <span>Rotate 90°</span>
+                      <BookmarkPlus className="w-3.5 h-3.5" /> Save to My Presets
                     </button>
                   </div>
-
-                  <p className="text-[10px] text-slate-400 text-center">
-                    💡 Drag directly on the face • Scroll mouse wheel to zoom • Arrow keys nudge position
-                  </p>
                 </div>
               )}
             </div>
           </div>
-        ) : (
-          /* Empty Studio Canvas Dropzone */
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-            className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-800 rounded-2xl hover:border-emerald-500/40 hover:bg-emerald-950/10 transition-colors cursor-pointer text-center group"
-          >
-            <label className="cursor-pointer flex flex-col items-center p-4">
-              <div className="w-12 h-12 rounded-2xl bg-slate-800/80 group-hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3 transition-transform group-hover:scale-105 shadow-inner">
-                <Upload className="w-6 h-6" />
-              </div>
-              <span className="text-xs font-bold text-slate-200 group-hover:text-emerald-400">
+        </div>
+      ) : (
+        /* Empty Studio Canvas Dropzone: Horizontal, Spacious, Welcoming */
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          className="flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 border-2 border-dashed border-slate-800 rounded-2xl hover:border-emerald-500/40 hover:bg-emerald-950/10 transition-all cursor-pointer group gap-4 text-center sm:text-left"
+        >
+          <label className="cursor-pointer flex flex-col sm:flex-row items-center gap-4 flex-1">
+            <div className="w-14 h-14 rounded-2xl bg-slate-800/80 group-hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center transition-transform group-hover:scale-105 shadow-inner shrink-0">
+              <Upload className="w-7 h-7" />
+            </div>
+            <div>
+              <span className="text-sm font-bold text-slate-100 group-hover:text-emerald-400 transition-colors block">
                 Drop your camera photo here or click to browse
               </span>
-              <span className="text-[11px] text-slate-400 mt-1 max-w-[220px]">
-                Auto-locks to &lt; {formatBytes(targetMaxBytes)} & official proportions
+              <span className="text-xs text-slate-400 mt-1 block">
+                Auto-locks to &lt; {formatBytes(targetMaxBytes)} • Official {targetW}×{targetH} px ({selectedRatio})
               </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileInput}
-                className="hidden"
-              />
-            </label>
-
-            <button
-              type="button"
-              onClick={handleLoadSample}
-              disabled={isLoadingSample}
-              className="mt-1 mb-2 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-300 text-[11px] font-semibold flex items-center gap-1.5 shadow-sm transition-all"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{isLoadingSample ? 'Generating sample...' : '✨ Try Sample Photo'}</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Slot Footer */}
-      {photoSlot.file && (
-        <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-800/80">
-          <label className="text-xs text-slate-400 hover:text-slate-200 cursor-pointer flex items-center gap-1">
-            <RefreshCw className="w-3.5 h-3.5" /> Replace Photo
+            </div>
             <input
               type="file"
               accept="image/*"
@@ -710,23 +758,16 @@ export const PhotoSlotCard: React.FC = () => {
               className="hidden"
             />
           </label>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => clearSlot('photo')}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10"
-              title="Remove photo"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveSingle}
-              className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-1 border border-emerald-500/30 shadow-sm"
-            >
-              <ArrowDownToLine className="w-3.5 h-3.5" /> Save Photo
-            </button>
-          </div>
+
+          <button
+            type="button"
+            onClick={handleLoadSample}
+            disabled={isLoadingSample}
+            className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 text-slate-200 hover:text-emerald-300 text-xs font-semibold flex items-center gap-2 shadow-sm transition-all shrink-0"
+          >
+            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <span>{isLoadingSample ? 'Generating sample...' : '✨ Try Sample Photo'}</span>
+          </button>
         </div>
       )}
 

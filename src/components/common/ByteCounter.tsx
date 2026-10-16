@@ -1,6 +1,6 @@
 import React from 'react';
 import { formatBytes } from '../../utils/byteFormatter';
-import { Zap, CheckCircle2 } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 interface ByteCounterProps {
   currentBytes: number;

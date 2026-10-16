@@ -12,6 +12,8 @@ import {
   X,
   AlertCircle,
   Sparkles,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useDossierStore } from '../../../store/useDossierStore';
 import { usePresetStore } from '../../../store/usePresetStore';
@@ -44,6 +46,7 @@ export const SignatureSlotCard: React.FC = () => {
   const [isSavePresetModalOpen, setIsSavePresetModalOpen] = useState(false);
   const [customPresetName, setCustomPresetName] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
   // Local slider states for 0-latency smooth thumb movement without firing 100s of heavy filters
   const [localBleach, setLocalBleach] = useState<number>(signatureSlot.filters.bleachThreshold || 185);
@@ -182,99 +185,83 @@ export const SignatureSlotCard: React.FC = () => {
   const isRawOverLimit = signatureSlot.file ? signatureSlot.sourceBytes > targetMaxBytes : false;
 
   return (
-    <div className="flex flex-col bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-all justify-between min-h-[490px]">
-      <div>
-        {/* Clean, Premium Header: Uncluttered, Spacious, Zero Noise */}
-        <div className="flex items-center justify-between mb-3.5 pb-3 border-b border-slate-800/80">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0 shadow-sm">
-              <PenLine className="w-4 h-4" />
+    <div className="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden group hover:border-slate-700/80 transition-all">
+      {/* Clean, Premium Header: Uncluttered, Spacious, with Quick Actions */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800/80">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0 shadow-sm">
+            <PenLine className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-100 tracking-tight">Slot 2: Signature</h3>
+              {signatureSlot.customTargetMaxKB && (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30 font-semibold shrink-0">
+                  Custom
+                </span>
+              )}
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-slate-100 truncate">Slot 2: Signature</h3>
-                {signatureSlot.customTargetMaxKB && (
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30 font-semibold shrink-0">
-                    Custom
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-slate-400 truncate">
-                Official target: &lt; {Math.round(targetMaxBytes / 1024)} KB • {targetW}×{targetH} px
-              </p>
-            </div>
+            <p className="text-xs text-slate-400 truncate">
+              Official target: &lt; {Math.round(targetMaxBytes / 1024)} KB • {targetW}×{targetH} px
+            </p>
           </div>
         </div>
 
+        {/* Top Right Slot Actions (when file exists) */}
+        {signatureSlot.file && (
+          <div className="flex items-center gap-2">
+            <StatusBadge status={signatureSlot.status} label={signatureSlot.status === 'valid' ? '100% Compliant' : undefined} />
+            <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
+            <label className="text-xs font-semibold text-slate-300 hover:text-white cursor-pointer px-2.5 py-1.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/70 flex items-center gap-1.5 transition-all">
+              <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden sm:inline">Replace</span>
+              <input type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
+            </label>
+            <button
+              type="button"
+              onClick={() => clearSlot('signature')}
+              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+              title="Remove signature"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveSingle}
+              className="px-3.5 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all"
+            >
+              <ArrowDownToLine className="w-3.5 h-3.5" />
+              <span>Save Signature</span>
+            </button>
+          </div>
+        )}
+      </div>
 
-
-        {/* Slot Body: Empty State vs Loaded Preview */}
-        {signatureSlot.file ? (
-          <div className="space-y-3">
-            {/* Consolidated Before/After & Official Validation Strip */}
-            <div className="p-2.5 rounded-2xl bg-slate-950 border border-slate-800/90 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="text-slate-400 font-medium text-[11px] shrink-0">Raw:</span>
-                <span
-                  className={`font-mono text-xs font-bold shrink-0 ${
-                    isRawOverLimit ? 'text-rose-400' : 'text-slate-300'
-                  }`}
-                >
-                  {formatBytes(signatureSlot.sourceBytes)}
-                </span>
-                {isRawOverLimit ? (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/25 text-rose-300 border border-rose-500/50 flex items-center gap-1 shadow-sm shadow-rose-500/20 shrink-0">
-                    <AlertCircle className="w-3 h-3 text-rose-400" />
-                    {'>'}{Math.round(targetMaxBytes / 1024)} KB
-                  </span>
-                ) : (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 shrink-0">
-                    OK
-                  </span>
-                )}
-              </div>
-
-              <span className="text-slate-600 font-bold shrink-0 px-1">➔</span>
-
-              <div className="flex items-center gap-1.5 min-w-0">
-                {/* <span className="text-slate-400 font-medium text-[11px] shrink-0">Ready:</span> */}
-                <span className="font-mono text-xs font-bold text-emerald-400 shrink-0">
-                  {formatBytes(signatureSlot.processedBytes)}
-                </span>
-                {signatureSlot.sourceBytes > signatureSlot.processedBytes && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">
-                    -{Math.round((1 - signatureSlot.processedBytes / signatureSlot.sourceBytes) * 100)}%
-                  </span>
-                )}
-              </div>
-
-              <div className="shrink-0 pl-1">
-                <StatusBadge status={signatureSlot.status} label={signatureSlot.status === 'valid' ? ' ' : undefined} />
-              </div>
-            </div>
-
-            {/* 1:1 Output Preview Stage */}
-            <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center h-52 group/preview shadow-md">
+      {/* Main Studio Body: Loaded vs Empty State */}
+      {signatureSlot.file ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* LEFT COLUMN: Visual Paper Studio Canvas (~42% on desktop) */}
+          <div className="lg:col-span-5 flex flex-col space-y-3">
+            {/* 1:1 Output Preview Stage: Dark studio stage with clean paper specimen */}
+            <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center h-60 p-4 group/preview shadow-md">
               {isHoldingOriginal ? (
-                /* Raw Smartphone Photo */
                 <img
                   src={signatureSlot.sourceUrl || ''}
                   alt="Raw uploaded signature"
-                  className="max-h-48 w-auto object-contain rounded-lg"
+                  className="max-h-52 w-auto object-contain rounded-lg shadow-sm border border-slate-800"
                 />
               ) : signatureSlot.processedDataUrl ? (
-                /* 1:1 Clean Output */
                 <img
                   src={signatureSlot.processedDataUrl}
                   alt="Clean signature on crisp white paper"
-                  className="max-h-48 w-auto object-contain rounded-lg shadow-sm"
+                  className="max-h-52 w-auto object-contain rounded-lg shadow-sm border border-slate-800"
                 />
               ) : (
                 <div className="text-xs text-slate-500 animate-pulse">Cleaning background ink...</div>
               )}
 
               {/* Badges on preview */}
-              <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-900/90 border border-slate-700 text-[10px] font-mono text-slate-300">
+              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-[11px] font-mono font-semibold text-slate-300">
                 {formatDimensions(signatureSlot.processedWidth || targetW, signatureSlot.processedHeight || targetH)}
               </div>
 
@@ -287,82 +274,50 @@ export const SignatureSlotCard: React.FC = () => {
                   onMouseLeave={() => setIsHoldingOriginal(false)}
                   onTouchStart={() => setIsHoldingOriginal(true)}
                   onTouchEnd={() => setIsHoldingOriginal(false)}
-                  className="absolute top-2 right-2 px-2 py-1 rounded-xl bg-slate-900/90 border border-slate-700 text-[11px] font-semibold text-slate-300 hover:text-white flex items-center gap-1 shadow-sm select-none"
+                  className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 shadow-sm select-none transition-all"
                   title="Hold to see original phone camera photo"
                 >
-                  <Eye className="w-3 h-3 text-blue-400" />
-                  <span>{isHoldingOriginal ? 'Raw Desk Photo' : 'Hold to Diff'}</span>
+                  <Eye className="w-3.5 h-3.5 text-blue-400" />
+                  <span>{isHoldingOriginal ? 'Raw Desk Photo' : 'Hold to Compare'}</span>
                 </button>
               )}
             </div>
 
-            {/* Live Precision Byte Counter */}
-            <ByteCounter
-              currentBytes={signatureSlot.processedBytes}
-              targetMaxBytes={targetMaxBytes}
-              targetMinBytes={requirement.targetMinBytes}
-              bracketPercentage={signatureSlot.bracketPercentage}
-            />
-
-            {/* In-Place Tactile Paper & Ink Controls */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-              {/* Quick Preset Action Pills */}
+            {/* Smart Paper & Ink Tone Quick Presets */}
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
               <div className="flex items-center justify-between gap-1.5 pb-1 border-b border-slate-900">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <Wand2 className="w-3 h-3 text-blue-400" /> Clean Paper & Ink
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Wand2 className="w-3.5 h-3.5 text-blue-400" /> Paper & Ink Cleanse
                 </span>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => applyPresetFilters(185, 1.3)}
-                    className="px-2 py-0.5 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 text-[10px] font-semibold"
+                    className="px-2 py-0.5 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 text-[10px] font-semibold transition-all"
                   >
                     White Paper
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPresetFilters(210, 1.8)}
-                    className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium"
+                    className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium transition-all"
                   >
                     Bold Ink
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPresetFilters(120, 1.0)}
-                    className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-medium"
+                    className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-medium transition-all"
                   >
                     Original
                   </button>
                 </div>
               </div>
 
-              {/* Slider 1: Clean White Background */}
+              {/* Ink Boldness Slider */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">Clean White Background:</span>
-                  <span className="font-mono text-emerald-400 font-bold text-[11px]">
-                    {localBleach} / 255
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="120"
-                  max="240"
-                  step="1"
-                  value={localBleach}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    setLocalBleach(val);
-                    commitFiltersAndOptimize(val, localDarkness);
-                  }}
-                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                />
-              </div>
-
-              {/* Slider 2: Darken Pen Ink */}
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">Darken Pen Ink:</span>
+                  <span className="text-slate-300 font-medium">Ink Boldness:</span>
                   <span className="font-mono text-blue-400 font-bold text-[11px]">
                     {localDarkness.toFixed(1)}x
                   </span>
@@ -382,121 +337,194 @@ export const SignatureSlotCard: React.FC = () => {
                 />
               </div>
 
-              {/* Direct Target Max Size Selector */}
-              <SizeCeilingController
-                currentKB={tweakMaxKB}
-                defaultKB={requirement ? Math.round(requirement.targetMaxBytes / 1024) : 20}
-                minKB={5}
-                maxKB={500}
-                presets={[
-                  { kb: 10, badge: 'Min' },
-                  { kb: 20, badge: 'Standard' },
-                  { kb: 30, badge: 'NTA' },
-                  { kb: 50, badge: 'Govt' },
-                ]}
-                accentColor="blue"
-                label="Signature Size Limit"
-                onChange={(kb) => {
-                  setTweakMaxKB(kb);
-                  updateSlotTarget('signature', { maxKB: kb });
-                }}
-                onReset={() => resetSlotCustomTarget('signature')}
-                showReset={!!signatureSlot.customTargetMaxKB}
-              />
-
-              {/* Pixel Dimension Controller for Signature */}
-              <PixelDimensionController
-                width={tweakWidth}
-                height={tweakHeight}
-                defaultWidth={requirement.width}
-                defaultHeight={requirement.height}
-                defaultRatio={requirement.aspectRatio}
-                slotType="signature"
-                accentColor="blue"
-                onChange={({ width, height, aspectRatio, aspectRatioValue }) => {
-                  setTweakWidth(width);
-                  setTweakHeight(height);
-                  updateSlotTarget('signature', {
-                    width,
-                    height,
-                    aspectRatio,
-                    aspectRatioValue,
-                  });
-                }}
-                onReset={() => {
-                  setTweakWidth(requirement.width);
-                  setTweakHeight(requirement.height);
-                  updateSlotTarget('signature', {
-                    width: requirement.width,
-                    height: requirement.height,
-                    aspectRatio: requirement.aspectRatio,
-                    aspectRatioValue: requirement.aspectRatioValue,
-                  });
-                }}
-                showReset={
-                  tweakWidth !== requirement.width || tweakHeight !== requirement.height
-                }
-              />
-
-              {/* Bookmark Save Action */}
-              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-900 text-[11px]">
-                <span className="text-slate-400">Save custom configuration:</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCustomPresetName(`${activePreset.name} (Sig ${tweakMaxKB}KB • ${tweakWidth}×${tweakHeight})`);
-                    setIsSavePresetModalOpen(true);
+              {/* White Background Threshold Slider */}
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400 font-medium text-[11px]">Paper Whiteness:</span>
+                  <span className="font-mono text-slate-400 text-[10px]">
+                    {localBleach} / 255
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="120"
+                  max="240"
+                  step="1"
+                  value={localBleach}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setLocalBleach(val);
+                    commitFiltersAndOptimize(val, localDarkness);
                   }}
-                  className="text-blue-400 hover:text-blue-300 flex items-center gap-1 font-bold px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/30"
-                >
-                  <BookmarkPlus className="w-3 h-3" /> Save to My Presets
-                </button>
+                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-500"
+                />
               </div>
             </div>
           </div>
-        ) : (
-          /* Empty Studio Canvas Dropzone */
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-            className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-800 rounded-2xl hover:border-blue-500/40 hover:bg-blue-950/10 transition-colors cursor-pointer text-center group"
-          >
-            <label className="cursor-pointer flex flex-col items-center p-4">
-              <div className="w-12 h-12 rounded-2xl bg-slate-800/80 group-hover:bg-blue-500/20 text-blue-400 flex items-center justify-center mb-3 transition-transform group-hover:scale-105 shadow-inner">
-                <Upload className="w-6 h-6" />
+
+          {/* RIGHT COLUMN: Control Deck & Compliance Metrics (~58% on desktop) */}
+          <div className="lg:col-span-7 space-y-4">
+            {/* 1. Before ➔ After Compression Strip */}
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400 font-medium">Original File:</span>
+                <span
+                  className={`font-mono font-bold ${
+                    isRawOverLimit ? 'text-rose-400' : 'text-slate-300'
+                  }`}
+                >
+                  {formatBytes(signatureSlot.sourceBytes)}
+                </span>
+                {isRawOverLimit ? (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1 shadow-sm shadow-rose-500/20">
+                    <AlertCircle className="w-3 h-3 text-rose-400" />
+                    Exceeds {Math.round(targetMaxBytes / 1024)} KB
+                  </span>
+                ) : (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400">
+                    OK
+                  </span>
+                )}
               </div>
-              <span className="text-xs font-bold text-slate-200 group-hover:text-blue-400">
+
+              <span className="text-slate-600 font-bold px-1 hidden sm:inline">➔</span>
+
+              <div className="flex items-center gap-2">
+                <span className="text-slate-400 font-medium">Optimized:</span>
+                <span className="font-mono font-bold text-emerald-400">
+                  {formatBytes(signatureSlot.processedBytes)}
+                </span>
+                {signatureSlot.sourceBytes > signatureSlot.processedBytes && (
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                    -{Math.round((1 - signatureSlot.processedBytes / signatureSlot.sourceBytes) * 100)}%
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 2. Live Precision Byte Counter */}
+            <ByteCounter
+              currentBytes={signatureSlot.processedBytes}
+              targetMaxBytes={targetMaxBytes}
+              targetMinBytes={requirement.targetMinBytes}
+              bracketPercentage={signatureSlot.bracketPercentage}
+            />
+
+            {/* 3. Direct Target Max Size Selector */}
+            <SizeCeilingController
+              currentKB={tweakMaxKB}
+              defaultKB={requirement ? Math.round(requirement.targetMaxBytes / 1024) : 20}
+              minKB={5}
+              maxKB={500}
+              presets={[
+                { kb: 10, badge: 'Min' },
+                { kb: 20, badge: 'Standard' },
+                { kb: 30, badge: 'NTA' },
+                { kb: 50, badge: 'Govt' },
+              ]}
+              accentColor="blue"
+              label="Signature Size Limit"
+              onChange={(kb) => {
+                setTweakMaxKB(kb);
+                updateSlotTarget('signature', { maxKB: kb });
+              }}
+              onReset={() => resetSlotCustomTarget('signature')}
+              showReset={!!signatureSlot.customTargetMaxKB}
+            />
+
+            {/* 4. Progressive Disclosure Accordion: Advanced Dimensions & Custom Presets */}
+            <div className="border border-slate-800 rounded-2xl bg-slate-950/70 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+                className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900/50 transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <span>⚙️ Pixel Dimensions & Custom Overrides</span>
+                  <span className="font-mono text-[11px] text-slate-400 font-normal">
+                    ({tweakWidth}×{tweakHeight} px)
+                  </span>
+                </span>
+                {isAdvancedOpen ? (
+                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                )}
+              </button>
+
+              {isAdvancedOpen && (
+                <div className="p-4 pt-2 border-t border-slate-800/80 space-y-3.5 animate-in fade-in duration-150">
+                  <PixelDimensionController
+                    width={tweakWidth}
+                    height={tweakHeight}
+                    defaultWidth={requirement.width}
+                    defaultHeight={requirement.height}
+                    defaultRatio={requirement.aspectRatio}
+                    slotType="signature"
+                    accentColor="blue"
+                    onChange={({ width, height, aspectRatio, aspectRatioValue }) => {
+                      setTweakWidth(width);
+                      setTweakHeight(height);
+                      updateSlotTarget('signature', {
+                        width,
+                        height,
+                        aspectRatio,
+                        aspectRatioValue,
+                      });
+                    }}
+                    onReset={() => {
+                      setTweakWidth(requirement.width);
+                      setTweakHeight(requirement.height);
+                      updateSlotTarget('signature', {
+                        width: requirement.width,
+                        height: requirement.height,
+                        aspectRatio: requirement.aspectRatio,
+                        aspectRatioValue: requirement.aspectRatioValue,
+                      });
+                    }}
+                    showReset={
+                      tweakWidth !== requirement.width || tweakHeight !== requirement.height
+                    }
+                  />
+
+                  {/* Bookmark Save Action */}
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
+                    <span className="text-slate-400">Save custom configuration:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCustomPresetName(`${activePreset.name} (Sig ${tweakMaxKB}KB • ${tweakWidth}×${tweakHeight})`);
+                        setIsSavePresetModalOpen(true);
+                      }}
+                      className="text-blue-400 hover:text-blue-300 flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 transition-colors"
+                    >
+                      <BookmarkPlus className="w-3.5 h-3.5" /> Save to My Presets
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Empty Studio Canvas Dropzone: Horizontal, Spacious, Welcoming */
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          className="flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 border-2 border-dashed border-slate-800 rounded-2xl hover:border-blue-500/40 hover:bg-blue-950/10 transition-all cursor-pointer group gap-4 text-center sm:text-left"
+        >
+          <label className="cursor-pointer flex flex-col sm:flex-row items-center gap-4 flex-1">
+            <div className="w-14 h-14 rounded-2xl bg-slate-800/80 group-hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-transform group-hover:scale-105 shadow-inner shrink-0">
+              <Upload className="w-7 h-7" />
+            </div>
+            <div>
+              <span className="text-sm font-bold text-slate-100 group-hover:text-blue-400 transition-colors block">
                 Drop photo of your handwritten signature
               </span>
-              <span className="text-[11px] text-slate-400 mt-1 max-w-[220px]">
-                Cleans desk shadows to pure white & keeps &lt; {formatBytes(targetMaxBytes)}
+              <span className="text-xs text-slate-400 mt-1 block">
+                Cleans desk shadows to pure white & keeps &lt; {formatBytes(targetMaxBytes)} • Official {targetW}×{targetH} px
               </span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileInput}
-                className="hidden"
-              />
-            </label>
-
-            <button
-              type="button"
-              onClick={handleLoadSample}
-              disabled={isLoadingSample}
-              className="mt-1 mb-2 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-blue-500/50 text-slate-300 hover:text-blue-300 text-[11px] font-semibold flex items-center gap-1.5 shadow-sm transition-all"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-              <span>{isLoadingSample ? 'Generating sample...' : '✨ Try Sample Signature'}</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Slot Footer */}
-      {signatureSlot.file && (
-        <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-800/80">
-          <label className="text-xs text-slate-400 hover:text-slate-200 cursor-pointer flex items-center gap-1">
-            <RefreshCw className="w-3.5 h-3.5" /> Replace Signature
+            </div>
             <input
               type="file"
               accept="image/*"
@@ -504,23 +532,16 @@ export const SignatureSlotCard: React.FC = () => {
               className="hidden"
             />
           </label>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => clearSlot('signature')}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10"
-              title="Remove signature"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveSingle}
-              className="px-3 py-1.5 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs font-bold flex items-center gap-1 border border-blue-500/30 shadow-sm"
-            >
-              <ArrowDownToLine className="w-3.5 h-3.5" /> Save Signature
-            </button>
-          </div>
+
+          <button
+            type="button"
+            onClick={handleLoadSample}
+            disabled={isLoadingSample}
+            className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-blue-500/50 text-slate-200 hover:text-blue-300 text-xs font-semibold flex items-center gap-2 shadow-sm transition-all shrink-0"
+          >
+            <Sparkles className="w-4 h-4 text-blue-400" />
+            <span>{isLoadingSample ? 'Generating sample...' : '✨ Try Sample Signature'}</span>
+          </button>
         </div>
       )}
 

@@ -388,8 +388,11 @@ export const useDossierStore = create<DossierState>((set, get) => ({
       const panX = slot.crop?.panX || 0;
       const panY = slot.crop?.panY || 0;
 
-      // Scale pan from Stage coordinates (192px height) to target canvas coordinates
-      const stageScale = targetH / 192;
+      // Scale pan from Stage coordinates to target canvas coordinates
+      const boxAspect = 280 / 192;
+      const targetAspect = targetW / targetH;
+      const stageH = targetAspect >= boxAspect ? Math.max(8, Math.round(280 / targetAspect)) : 192;
+      const stageScale = targetH / stageH;
       const canvasPanX = panX * stageScale;
       const canvasPanY = panY * stageScale;
 
@@ -753,9 +756,9 @@ export const useDossierStore = create<DossierState>((set, get) => ({
           c.id === id
             ? {
                 ...c,
-                processedBlob: c.file,
+                processedBlob: c.file || null,
                 processedDataUrl: c.sourceUrl,
-                processedBytes: c.file.size,
+                processedBytes: c.file ? c.file.size : 0,
                 status: 'warning',
                 statusMessage: 'Loaded with original settings',
               }
