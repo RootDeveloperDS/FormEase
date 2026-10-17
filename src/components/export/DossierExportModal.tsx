@@ -157,7 +157,7 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
               <h2 id="export-modal-title" className="text-base font-bold text-slate-100 flex items-center gap-2">
                 <span>Verified Dossier Pre-Flight Audit</span>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  v3.0.1.0 • Ready to Bundle
+                  v3.0.1.1 • Ready to Bundle
                 </span>
               </h2>
               <p className="text-xs text-slate-400">

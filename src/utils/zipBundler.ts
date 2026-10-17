@@ -37,7 +37,7 @@ export function generateValidationSummary(
   const subline = '-'.repeat(80);
 
   let summary = `${line}\n`;
-  summary += `  FORMEASE v3.0.1.0 • CLIENT-SIDE APPLICATION DOSSIER VERIFICATION MANIFEST\n`;
+  summary += `  FORMEASE v3.0.1.1 • CLIENT-SIDE APPLICATION DOSSIER VERIFICATION MANIFEST\n`;
   summary += `${line}\n\n`;
   summary += `Target Application:  ${meta.presetName} (${meta.presetId.toUpperCase()})\n`;
   if (meta.authority) {

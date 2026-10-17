@@ -1,7 +1,6 @@
 import React from 'react';
 import { FolderArchive, Layers, LayoutGrid } from 'lucide-react';
 import { useDossierStore } from '../../store/useDossierStore';
-import { useOfflineTelemetry } from '../../hooks/useOfflineTelemetry';
 import { PresetSelector } from '../presets/PresetSelector';
 import { ActionButton } from '../common/ActionButton';
 import { FormEaseLogo } from '../common/FormEaseLogo';
@@ -13,7 +12,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onOpenExportModal }) => {
   const { activeMode, setMode, photoSlot, signatureSlot, documentSlot, sandboxQueue } =
     useDossierStore();
-  const { isFullyOffline } = useOfflineTelemetry();
 
   const hasItems =
     activeMode === 'dossier'
@@ -75,14 +73,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenExportModal }) => {
           {/* Preset Selector */}
           {activeMode === 'dossier' && <PresetSelector />}
 
-          {/* Quiet Sovereign Telemetry Pill */}
-          {/* <div
-            className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono text-emerald-400 font-medium"
-            title="FormEase processes 100% locally in browser memory. 0 outbound network calls."
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>{isFullyOffline ? '0 Outbound' : 'Local Memory'}</span>
-          </div> */}
 
           {/* Master Export Button */}
           <ActionButton
