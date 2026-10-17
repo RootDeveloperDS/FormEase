@@ -16,14 +16,17 @@ import {
 import { FormEaseLogo } from '../common/FormEaseLogo';
 import { useDossierStore } from '../../store/useDossierStore';
 import { usePresetStore } from '../../store/usePresetStore';
+import { useNavigationStore } from '../../store/useNavigationStore';
 import { DEFAULT_PRESETS } from '../../core/presets/defaultPresets';
 
 export const Footer: React.FC = () => {
   const { setMode, resetAllSlotCustomTargets, optimizeAllSlots } = useDossierStore();
   const { setActivePreset } = usePresetStore();
+  const { navigateTo } = useNavigationStore();
 
   const handleNavToMode = (mode: 'dossier' | 'sandbox') => {
     setMode(mode);
+    navigateTo('prepare');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -31,6 +34,7 @@ export const Footer: React.FC = () => {
     resetAllSlotCustomTargets();
     setActivePreset(presetId);
     setMode('dossier');
+    navigateTo('prepare');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     optimizeAllSlots();
   };
@@ -108,50 +112,50 @@ export const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="w-full border-t border-slate-800/80 bg-slate-950/95 py-12 px-4 sm:px-6 lg:px-8 mt-20 text-slate-400">
+    <footer className="w-full border-t border-border bg-card/80 py-12 px-4 sm:px-6 lg:px-8 mt-20 text-muted-foreground transition-colors">
       <div className="max-w-7xl mx-auto space-y-12">
         {/* Top Badges & Sovereignty Pillars */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-8 border-b border-slate-800/70">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-8 border-b border-border">
           {/* Sovereign Security */}
-          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0 shadow-sm">
+          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-muted/40 border border-border">
+            <div className="w-10 h-10 rounded-xl bg-primary-soft border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                 100% Client-Side Sovereign
               </h4>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                 Biometric passports, identity documents, and signatures are processed exclusively in your browser's local memory. Zero remote server uploads, guaranteed.
               </p>
             </div>
           </div>
 
           {/* WCAG & Ergonomics */}
-          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0 shadow-sm">
+          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-muted/40 border border-border">
+            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-500 shrink-0 shadow-sm">
               <Keyboard className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                 WCAG 2.1 AA Ergonomics
               </h4>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Accessible keyboard navigation with precision nudge controls: <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300 font-mono">Arrow Keys</kbd> for 1px, <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300 font-mono">Shift + Arrows</kbd> for 10px.
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Accessible keyboard navigation with precision nudge controls: <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border text-[10px] text-foreground font-mono">Arrow Keys</kbd> for 1px, <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border text-[10px] text-foreground font-mono">Shift + Arrows</kbd> for 10px.
               </p>
             </div>
           </div>
 
           {/* Deployxa Edge Hosting */}
-          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-slate-900/40 border border-slate-800/60">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-purple-400 shrink-0 shadow-sm">
+          <div className="flex items-start gap-3.5 p-4 rounded-2xl bg-muted/40 border border-border">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-purple-500 shrink-0 shadow-sm">
               <Zap className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                 Deployxa Edge Verified
               </h4>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                 Deployed natively on Deployxa edge infrastructure with immutable asset caching headers and instant cold-start sub-millisecond delivery.
               </p>
             </div>
@@ -163,13 +167,13 @@ export const Footer: React.FC = () => {
           {/* Brand Identity & Mission (Takes 2 cols on lg) */}
           <div className="lg:col-span-2 space-y-4">
             <FormEaseLogo size={36} showText={true} />
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-sm">
               FormEase is a sovereign client-side biometric dossier & document engine. Formats, verifies, and packages official application assets entirely in your browser memory with zero outbound server transmission.
             </p>
 
             <div className="flex items-center gap-2 pt-1">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-soft border border-primary/25 text-primary text-[11px] font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 Zero Data Leaves Device
               </span>
             </div>
@@ -178,7 +182,7 @@ export const Footer: React.FC = () => {
             <div className="pt-2">
               <a
                 href="mailto:developersofroot@gmail.com"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all hover:scale-102"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-primary hover:bg-primary-hover text-primary-foreground font-bold text-xs shadow-lg shadow-primary/20 transition-all hover:scale-102"
               >
                 <Mail className="w-4 h-4" />
                 <span>Contact Creator (Direct Mail)</span>
@@ -188,8 +192,8 @@ export const Footer: React.FC = () => {
 
           {/* Primary Navigation: Workspaces */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-              <LayoutGrid className="w-3.5 h-3.5 text-emerald-400" />
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <LayoutGrid className="w-3.5 h-3.5 text-primary" />
               <span>Workspaces</span>
             </h4>
             <ul className="space-y-2 text-xs">
@@ -197,9 +201,9 @@ export const Footer: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleNavToMode('dossier')}
-                  className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 text-left"
+                  className="hover:text-primary transition-colors flex items-center gap-1.5 text-left text-muted-foreground"
                 >
-                  <span className="w-1 h-1 rounded-full bg-slate-700" />
+                  <span className="w-1 h-1 rounded-full bg-border" />
                   <span>Guided Dossier Slots</span>
                 </button>
               </li>
@@ -207,9 +211,9 @@ export const Footer: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleNavToMode('sandbox')}
-                  className="hover:text-emerald-400 transition-colors flex items-center gap-1.5 text-left"
+                  className="hover:text-primary transition-colors flex items-center gap-1.5 text-left text-muted-foreground"
                 >
-                  <span className="w-1 h-1 rounded-full bg-slate-700" />
+                  <span className="w-1 h-1 rounded-full bg-border" />
                   <span>Batch Sandbox Studio</span>
                 </button>
               </li>
@@ -220,9 +224,9 @@ export const Footer: React.FC = () => {
                     e.preventDefault();
                     handleNavToMode('dossier');
                   }}
-                  className="hover:text-emerald-400 transition-colors flex items-center gap-1.5"
+                  className="hover:text-primary transition-colors flex items-center gap-1.5 text-muted-foreground"
                 >
-                  <span className="w-1 h-1 rounded-full bg-slate-700" />
+                  <span className="w-1 h-1 rounded-full bg-border" />
                   <span>Interactive Biometric Cropper</span>
                 </a>
               </li>
@@ -233,9 +237,9 @@ export const Footer: React.FC = () => {
                     e.preventDefault();
                     handleNavToMode('dossier');
                   }}
-                  className="hover:text-emerald-400 transition-colors flex items-center gap-1.5"
+                  className="hover:text-primary transition-colors flex items-center gap-1.5 text-muted-foreground"
                 >
-                  <span className="w-1 h-1 rounded-full bg-slate-700" />
+                  <span className="w-1 h-1 rounded-full bg-border" />
                   <span>Shadow Ink Bleach Engine</span>
                 </a>
               </li>
@@ -246,9 +250,9 @@ export const Footer: React.FC = () => {
                     e.preventDefault();
                     handleNavToMode('dossier');
                   }}
-                  className="hover:text-emerald-400 transition-colors flex items-center gap-1.5"
+                  className="hover:text-primary transition-colors flex items-center gap-1.5 text-muted-foreground"
                 >
-                  <span className="w-1 h-1 rounded-full bg-slate-700" />
+                  <span className="w-1 h-1 rounded-full bg-border" />
                   <span>Pre-Flight ZIP Bundler</span>
                 </a>
               </li>
@@ -257,8 +261,8 @@ export const Footer: React.FC = () => {
 
           {/* Primary Navigation: Portal Presets */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-              <FileCheck className="w-3.5 h-3.5 text-blue-400" />
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <FileCheck className="w-3.5 h-3.5 text-blue-500" />
               <span>Portal Presets</span>
             </h4>
             <ul className="space-y-2 text-xs">
@@ -267,10 +271,10 @@ export const Footer: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleSelectPreset(p.id)}
-                    className="hover:text-blue-400 transition-colors flex items-center gap-1.5 text-left truncate max-w-full"
+                    className="hover:text-blue-500 transition-colors flex items-center gap-1.5 text-left truncate max-w-full text-muted-foreground"
                     title={p.name}
                   >
-                    <span className="w-1 h-1 rounded-full bg-slate-700" />
+                    <span className="w-1 h-1 rounded-full bg-border" />
                     <span className="truncate">{p.name}</span>
                   </button>
                 </li>
@@ -278,8 +282,8 @@ export const Footer: React.FC = () => {
               <li>
                 <button
                   type="button"
-                  onClick={() => handleNavToMode('dossier')}
-                  className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors flex items-center gap-1"
+                  onClick={() => navigateTo('presets')}
+                  className="text-primary hover:text-primary/80 font-semibold transition-colors flex items-center gap-1"
                 >
                   <Sparkles className="w-3 h-3" />
                   <span>Custom Preset Architect</span>
@@ -290,29 +294,29 @@ export const Footer: React.FC = () => {
 
           {/* Engine & Security Specs */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-purple-400" />
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5 text-purple-500" />
               <span>Engine Specs</span>
             </h4>
-            <ul className="space-y-2 text-xs text-slate-400">
+            <ul className="space-y-2 text-xs text-muted-foreground">
               <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span>Binary Search Quality Loop</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span>HTML5 Canvas & Web Workers</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span>Offline EXIF Auto-Orientation</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span>Single-Page PDF & JPEG Output</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span>Browser LocalStorage Persistence</span>
               </li>
             </ul>
@@ -320,17 +324,17 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Comprehensive Social Presence Bar */}
-        <div className="pt-8 border-t border-slate-800/70 space-y-4">
+        <div className="pt-8 border-t border-border space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                 Connect with the Creator & Engineering Team
               </h4>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 Portfolio, open-source repositories, business inquiries, and direct communication channels
               </p>
             </div>
-            <span className="text-[11px] font-mono text-emerald-400 font-semibold">
+            <span className="text-[11px] font-mono text-primary font-semibold">
               Product by Devansh Sharma
             </span>
           </div>
@@ -343,46 +347,46 @@ export const Footer: React.FC = () => {
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative flex items-center justify-between p-2.5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-850 hover:shadow-lg hover:shadow-emerald-500/10 text-slate-300 hover:text-white transition-all duration-200"
+                className="group relative flex items-center justify-between p-2.5 rounded-2xl bg-card border border-border hover:border-primary/50 hover:bg-muted/60 hover:shadow-card text-foreground transition-all duration-200"
                 title={`${social.name} • ${social.tooltip}`}
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-emerald-400 group-hover:scale-110 group-hover:text-emerald-300 transition-transform duration-200 shrink-0">
+                  <span className="text-primary group-hover:scale-110 transition-transform duration-200 shrink-0">
                     {social.icon}
                   </span>
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[11px] font-bold text-slate-200 group-hover:text-emerald-300 transition-colors truncate">
+                    <span className="text-[11px] font-bold text-foreground group-hover:text-primary transition-colors truncate">
                       {social.name}
                     </span>
-                    <span className="text-[9px] font-mono text-slate-500 truncate group-hover:text-slate-400">
+                    <span className="text-[9px] font-mono text-muted-foreground truncate">
                       {social.handle}
                     </span>
                   </div>
                 </div>
-                <ArrowUpRight className="w-3 h-3 text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200 shrink-0 ml-1" />
+                <ArrowUpRight className="w-3 h-3 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200 shrink-0 ml-1" />
               </a>
             ))}
           </div>
         </div>
 
         {/* Bottom Credits & Copyright */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-800/60 text-xs">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-border text-xs">
           <div className="flex items-center gap-2">
-            <span className="font-extrabold text-white">FormEase</span>
-            <span className="text-[10px] font-mono font-bold text-emerald-400 px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-              v3.1
+            <span className="font-extrabold text-foreground">FormEase</span>
+            <span className="text-[10px] font-mono font-bold text-primary px-1.5 py-0.5 rounded-md bg-primary-soft border border-primary/20">
+              v4.0
             </span>
-            <span className="text-slate-700">•</span>
+            <span className="text-border">•</span>
             <span>&copy; {new Date().getFullYear()} All rights reserved.</span>
-            <span className="text-slate-700">•</span>
-            <span className="text-slate-300 font-medium">Product by Devansh Sharma</span>
+            <span className="text-border">•</span>
+            <span className="text-foreground font-medium">Product by Devansh Sharma</span>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-400">
+          <div className="flex items-center gap-4 text-muted-foreground">
             <span>Hyperbloom Hackathon Entry</span>
-            <span className="text-slate-700">•</span>
-            <span className="text-emerald-400 font-semibold font-mono text-[11px] flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span className="text-border">•</span>
+            <span className="text-primary font-semibold font-mono text-[11px] flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
               Deterministic 92%-98% Convergence Loop
             </span>
           </div>
@@ -391,3 +395,5 @@ export const Footer: React.FC = () => {
     </footer>
   );
 };
+
+export default Footer;

@@ -170,7 +170,9 @@ export const PhotoSlotCard: React.FC = () => {
     : requirement.targetMaxBytes;
   const targetW = photoSlot.customWidth || requirement.width;
   const targetH = photoSlot.customHeight || requirement.height;
-  const aspectRatioVal = photoSlot.customAspectRatioValue || requirement.aspectRatioValue || targetW / targetH;
+  const aspectRatioVal = (photoSlot.customWidth && photoSlot.customHeight)
+    ? (targetW / targetH)
+    : (photoSlot.customAspectRatioValue || (targetW / targetH) || requirement.aspectRatioValue);
 
   // Exact Stage Box Dimensions: scales strictly with user-configured aspect ratio
   // Fits proportionally within max studio viewport boundaries [280px width x 192px height]
@@ -301,23 +303,23 @@ export const PhotoSlotCard: React.FC = () => {
   const isRawOverLimit = photoSlot.file ? photoSlot.sourceBytes > targetMaxBytes : false;
 
   return (
-    <div className="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden group hover:border-slate-700/80 transition-all">
+    <div className="w-full bg-card border border-border text-card-foreground rounded-3xl p-5 sm:p-6 shadow-card hover:shadow-lift relative overflow-hidden group hover:border-primary/40 transition-all">
       {/* Clean, Premium Header: Uncluttered, Spacious, with Quick Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800/80">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-border">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0 shadow-sm">
+          <div className="w-10 h-10 rounded-2xl bg-primary-soft border border-primary/20 flex items-center justify-center text-primary shrink-0 shadow-sm">
             <Camera className="w-5 h-5" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-slate-100 tracking-tight">Slot 1: Photograph</h3>
+              <h3 className="text-base font-bold text-foreground tracking-tight">Slot 1: Photograph</h3>
               {photoSlot.customTargetMaxKB && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold shrink-0">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary-soft text-primary border border-primary/30 font-semibold shrink-0">
                   Custom
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-400 truncate">
+            <p className="text-xs text-muted-foreground truncate">
               Official target: &lt; {Math.round(targetMaxBytes / 1024)} KB • {targetW}×{targetH} px ({selectedRatio})
             </p>
           </div>
@@ -327,16 +329,16 @@ export const PhotoSlotCard: React.FC = () => {
         {photoSlot.file && (
           <div className="flex items-center gap-2">
             <StatusBadge status={photoSlot.status} label={photoSlot.status === 'valid' ? '100% Compliant' : undefined} />
-            <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
-            <label className="text-xs font-semibold text-slate-300 hover:text-white cursor-pointer px-2.5 py-1.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/70 flex items-center gap-1.5 transition-all">
-              <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+            <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
+            <label className="text-xs font-semibold text-foreground hover:text-primary cursor-pointer px-2.5 py-1.5 rounded-xl bg-card hover:bg-muted border border-border flex items-center gap-1.5 transition-all">
+              <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="hidden sm:inline">Replace</span>
               <input type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
             </label>
             <button
               type="button"
               onClick={() => clearSlot('photo')}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+              className="p-1.5 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive-soft transition-colors"
               title="Remove photograph"
             >
               <Trash2 className="w-4 h-4" />
@@ -344,7 +346,7 @@ export const PhotoSlotCard: React.FC = () => {
             <button
               type="button"
               onClick={handleSaveSingle}
-              className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-500/20 transition-all"
+              className="px-3.5 py-1.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold flex items-center gap-1.5 shadow-md transition-all"
             >
               <ArrowDownToLine className="w-3.5 h-3.5" />
               <span>Save Photo</span>
@@ -361,7 +363,7 @@ export const PhotoSlotCard: React.FC = () => {
             {/* Viewfinder Frame */}
             <div
               ref={containerRef}
-              className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center h-60 w-full group/preview shadow-md"
+              className="relative rounded-2xl overflow-hidden bg-muted/40 border border-border flex items-center justify-center h-60 w-full group/preview shadow-sm"
             >
               {/* Exact Stage Box with Strict Aspect Ratio */}
               <div
@@ -373,8 +375,8 @@ export const PhotoSlotCard: React.FC = () => {
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
-                className={`relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-md touch-none select-none transition-shadow ${
-                  isEditorOpen ? 'cursor-grab active:cursor-grabbing ring-2 ring-emerald-400/60' : ''
+                className={`relative rounded-xl overflow-hidden bg-card border border-border shadow-sm touch-none select-none transition-shadow ${
+                  isEditorOpen ? 'cursor-grab active:cursor-grabbing ring-2 ring-primary/60' : ''
                 }`}
                 style={{ width: `${stageWidth}px`, height: `${stageHeight}px` }}
               >
@@ -477,7 +479,7 @@ export const PhotoSlotCard: React.FC = () => {
               </div>
 
               {/* Dimensions pill */}
-              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-[11px] font-mono font-semibold text-slate-300 pointer-events-none shadow-sm">
+              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border text-[11px] font-mono font-semibold text-foreground pointer-events-none shadow-sm">
                 {formatDimensions(photoSlot.processedWidth || targetW, photoSlot.processedHeight || targetH)}
               </div>
 
@@ -490,10 +492,10 @@ export const PhotoSlotCard: React.FC = () => {
                   onMouseLeave={() => setIsHoldingOriginal(false)}
                   onTouchStart={() => setIsHoldingOriginal(true)}
                   onTouchEnd={() => setIsHoldingOriginal(false)}
-                  className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 shadow-sm select-none transition-all"
+                  className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-xl bg-card/90 backdrop-blur-sm border border-border text-xs font-semibold text-foreground hover:text-primary flex items-center gap-1.5 shadow-sm select-none transition-all"
                   title="Hold to see original unaligned photo"
                 >
-                  <Eye className="w-3.5 h-3.5 text-blue-400" />
+                  <Eye className="w-3.5 h-3.5 text-primary" />
                   <span>{isHoldingOriginal ? 'Raw Original' : 'Hold to Compare'}</span>
                 </button>
               )}
@@ -505,8 +507,8 @@ export const PhotoSlotCard: React.FC = () => {
               onClick={() => setIsEditorOpen(!isEditorOpen)}
               className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
                 isEditorOpen
-                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md shadow-emerald-500/20'
-                  : 'bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-muted hover:bg-card text-foreground border-border'
               }`}
             >
               <Crop className="w-3.5 h-3.5" />
@@ -515,10 +517,10 @@ export const PhotoSlotCard: React.FC = () => {
 
             {/* Expanded Tactile Editor Controls */}
             {isEditorOpen && (
-              <div className="w-full p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 animate-in fade-in duration-150">
+              <div className="w-full p-3.5 rounded-2xl bg-card border border-border space-y-2.5 animate-in fade-in duration-150">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400 font-medium">Zoom Level:</span>
-                  <span className="font-mono text-emerald-400 font-bold">
+                  <span className="text-muted-foreground font-medium">Zoom Level:</span>
+                  <span className="font-mono text-primary font-bold">
                     {Math.round(localCrop.zoom * 100)}%
                   </span>
                 </div>
@@ -532,7 +534,7 @@ export const PhotoSlotCard: React.FC = () => {
                       setLocalCrop(updated);
                       commitCropAndOptimize(updated);
                     }}
-                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                    className="p-1.5 rounded-lg bg-muted border border-border text-foreground hover:bg-card transition-colors"
                     title="Zoom Out"
                   >
                     <ZoomOut className="w-3.5 h-3.5" />
@@ -548,7 +550,7 @@ export const PhotoSlotCard: React.FC = () => {
                       setLocalCrop(updated);
                       commitCropAndOptimize(updated);
                     }}
-                    className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                    className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                   />
                   <button
                     type="button"
@@ -558,7 +560,7 @@ export const PhotoSlotCard: React.FC = () => {
                       setLocalCrop(updated);
                       commitCropAndOptimize(updated);
                     }}
-                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                    className="p-1.5 rounded-lg bg-muted border border-border text-foreground hover:bg-card transition-colors"
                     title="Zoom In"
                   >
                     <ZoomIn className="w-3.5 h-3.5" />
@@ -571,15 +573,15 @@ export const PhotoSlotCard: React.FC = () => {
                       setLocalCrop(updated);
                       commitCropAndOptimize(updated);
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white text-xs flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-lg bg-muted border border-border text-foreground hover:bg-card text-xs flex items-center gap-1 transition-colors"
                     title="Rotate 90 degrees"
                   >
-                    <RotateCw className="w-3.5 h-3.5 text-blue-400" />
+                    <RotateCw className="w-3.5 h-3.5 text-primary" />
                     <span>90°</span>
                   </button>
                 </div>
 
-                <p className="text-[10px] text-slate-400 text-center">
+                <p className="text-[10px] text-muted-foreground text-center">
                   💡 Drag directly on the face • Scroll wheel to zoom • Arrow keys nudge
                 </p>
               </div>
@@ -589,37 +591,37 @@ export const PhotoSlotCard: React.FC = () => {
           {/* RIGHT COLUMN: Control Deck & Compliance Metrics (~58% on desktop) */}
           <div className="lg:col-span-7 space-y-4">
             {/* 1. Before ➔ After Compression Strip: Clean, Spacious, Confident */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div className="p-3.5 rounded-2xl bg-card border border-border flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <span className="text-slate-400 font-medium">Original File:</span>
+                <span className="text-muted-foreground font-medium">Original File:</span>
                 <span
                   className={`font-mono font-bold ${
-                    isRawOverLimit ? 'text-rose-400' : 'text-slate-300'
+                    isRawOverLimit ? 'text-rose-500' : 'text-foreground'
                   }`}
                 >
                   {formatBytes(photoSlot.sourceBytes)}
                 </span>
                 {isRawOverLimit ? (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1 shadow-sm shadow-rose-500/20">
-                    <AlertCircle className="w-3 h-3 text-rose-400" />
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1 shadow-sm">
+                    <AlertCircle className="w-3 h-3 text-rose-500" />
                     Exceeds {Math.round(targetMaxBytes / 1024)} KB
                   </span>
                 ) : (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground">
                     OK
                   </span>
                 )}
               </div>
 
-              <span className="text-slate-600 font-bold px-1 hidden sm:inline">➔</span>
+              <span className="text-muted-foreground font-bold px-1 hidden sm:inline">➔</span>
 
               <div className="flex items-center gap-2">
-                <span className="text-slate-400 font-medium">Optimized:</span>
-                <span className="font-mono font-bold text-emerald-400">
+                <span className="text-muted-foreground font-medium">Optimized:</span>
+                <span className="font-mono font-bold text-primary">
                   {formatBytes(photoSlot.processedBytes)}
                 </span>
                 {photoSlot.sourceBytes > photoSlot.processedBytes && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-soft text-primary border border-primary/30">
                     -{Math.round((1 - photoSlot.processedBytes / photoSlot.sourceBytes) * 100)}%
                   </span>
                 )}
@@ -657,27 +659,27 @@ export const PhotoSlotCard: React.FC = () => {
             />
 
             {/* 4. Progressive Disclosure Accordion: Advanced Dimensions & Custom Presets */}
-            <div className="border border-slate-800 rounded-2xl bg-slate-950/70 overflow-hidden">
+            <div className="border border-border rounded-2xl bg-card overflow-hidden">
               <button
                 type="button"
                 onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
-                className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900/50 transition-colors"
+                className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-foreground hover:bg-muted/50 transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <span>⚙️ Pixel Dimensions & Custom Overrides</span>
-                  <span className="font-mono text-[11px] text-slate-400 font-normal">
+                  <span className="font-mono text-[11px] text-muted-foreground font-normal">
                     ({tweakWidth}×{tweakHeight} px • {selectedRatio})
                   </span>
                 </span>
                 {isAdvancedOpen ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 )}
               </button>
 
               {isAdvancedOpen && (
-                <div className="p-4 pt-2 border-t border-slate-800/80 space-y-3.5 animate-in fade-in duration-150">
+                <div className="p-4 pt-2 border-t border-border space-y-3.5 animate-in fade-in duration-150">
                   <PixelDimensionController
                     width={tweakWidth}
                     height={tweakHeight}
@@ -714,15 +716,15 @@ export const PhotoSlotCard: React.FC = () => {
                   />
 
                   {/* Bookmark Save Action */}
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
-                    <span className="text-slate-400">Save custom configuration:</span>
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 border border-border text-xs">
+                    <span className="text-muted-foreground">Save custom configuration:</span>
                     <button
                       type="button"
                       onClick={() => {
                         setCustomPresetName(`${activePreset.name} (${tweakMaxKB}KB • ${tweakWidth}×${tweakHeight})`);
                         setIsSavePresetModalOpen(true);
                       }}
-                      className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 transition-colors"
+                      className="text-primary hover:text-primary/80 flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg bg-primary-soft border border-primary/30 transition-colors"
                     >
                       <BookmarkPlus className="w-3.5 h-3.5" /> Save to My Presets
                     </button>
@@ -737,17 +739,17 @@ export const PhotoSlotCard: React.FC = () => {
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          className="flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 border-2 border-dashed border-slate-800 rounded-2xl hover:border-emerald-500/40 hover:bg-emerald-950/10 transition-all cursor-pointer group gap-4 text-center sm:text-left"
+          className="flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 border-2 border-dashed border-border rounded-2xl hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group gap-4 text-center sm:text-left bg-card/50"
         >
           <label className="cursor-pointer flex flex-col sm:flex-row items-center gap-4 flex-1">
-            <div className="w-14 h-14 rounded-2xl bg-slate-800/80 group-hover:bg-emerald-500/20 text-emerald-400 flex items-center justify-center transition-transform group-hover:scale-105 shadow-inner shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-muted group-hover:bg-primary-soft text-primary flex items-center justify-center transition-transform group-hover:scale-105 shadow-xs shrink-0">
               <Upload className="w-7 h-7" />
             </div>
             <div>
-              <span className="text-sm font-bold text-slate-100 group-hover:text-emerald-400 transition-colors block">
+              <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors block">
                 Drop your camera photo here or click to browse
               </span>
-              <span className="text-xs text-slate-400 mt-1 block">
+              <span className="text-xs text-muted-foreground mt-1 block">
                 Auto-locks to &lt; {formatBytes(targetMaxBytes)} • Official {targetW}×{targetH} px ({selectedRatio})
               </span>
             </div>
@@ -763,9 +765,9 @@ export const PhotoSlotCard: React.FC = () => {
             type="button"
             onClick={handleLoadSample}
             disabled={isLoadingSample}
-            className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 text-slate-200 hover:text-emerald-300 text-xs font-semibold flex items-center gap-2 shadow-sm transition-all shrink-0"
+            className="px-4 py-2.5 rounded-xl bg-card hover:bg-muted border border-border hover:border-primary/40 text-foreground text-xs font-semibold flex items-center gap-2 shadow-xs transition-all shrink-0"
           >
-            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <Sparkles className="w-4 h-4 text-primary" />
             <span>{isLoadingSample ? 'Generating sample...' : '✨ Try Sample Photo'}</span>
           </button>
         </div>
@@ -778,26 +780,26 @@ export const PhotoSlotCard: React.FC = () => {
           <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+            className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
             onClick={() => setIsSavePresetModalOpen(false)}
           >
             <div
-              className="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+              className="w-full max-w-sm bg-card border border-border rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150 text-foreground"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                  <BookmarkPlus className="w-4 h-4 text-emerald-400" /> Save as Custom Preset
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                  <BookmarkPlus className="w-4 h-4 text-primary" /> Save as Custom Preset
                 </h4>
                 <button
                   type="button"
                   onClick={() => setIsSavePresetModalOpen(false)}
-                  className="text-slate-400 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-muted-foreground">
                 Save your custom {tweakMaxKB} KB limit and {selectedRatio} ratio so you can instantly re-use it anytime.
               </p>
               <form onSubmit={handleSavePreset} className="space-y-3">
@@ -808,19 +810,19 @@ export const PhotoSlotCard: React.FC = () => {
                   placeholder="e.g., My UPSC 100KB Preset"
                   required
                   autoFocus
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-emerald-400"
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-foreground outline-none focus:border-primary"
                 />
                 <div className="flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setIsSavePresetModalOpen(false)}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-300"
+                    className="px-3 py-1.5 rounded-lg bg-muted text-xs text-foreground hover:bg-muted/80"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs"
+                    className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90"
                   >
                     {saveSuccess ? 'Saved!' : 'Save Preset'}
                   </button>

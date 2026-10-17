@@ -160,7 +160,7 @@ export const BiometricCanvas: React.FC<BiometricCanvasProps> = ({
         role="region"
         aria-label="Biometric crop stage. Use arrow keys to adjust position, shift+arrows for 10px shift."
         onKeyDown={handleKeyDown}
-        className="relative rounded-2xl overflow-hidden border-2 border-slate-700 bg-slate-950 shadow-2xl focus-visible:ring-2 focus-visible:ring-emerald-400 touch-none select-none cursor-grab active:cursor-grabbing"
+        className="relative rounded-2xl overflow-hidden border-2 border-border bg-muted/40 shadow-xl focus-visible:ring-2 focus-visible:ring-primary touch-none select-none cursor-grab active:cursor-grabbing"
         style={{
           width: canvasWidth,
           height: canvasHeight,
@@ -250,13 +250,13 @@ export const BiometricCanvas: React.FC<BiometricCanvasProps> = ({
         )}
 
         {/* Floating Format Badge */}
-        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-slate-900/80 backdrop-blur-sm border border-slate-700 text-[10px] font-mono text-slate-300">
+        <div className="absolute top-2 left-2 px-2 py-0.5 rounded bg-card/90 backdrop-blur-sm border border-border text-[10px] font-mono text-foreground shadow-sm">
           {aspectRatioLabel} • {faceCoverage}
         </div>
       </div>
 
       {/* Tactile Control Toolbar */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-900 border border-slate-800 shadow-md">
+      <div className="flex items-center gap-1.5 p-1.5 rounded-xl bg-card border border-border shadow-md">
         <button
           type="button"
           onClick={() => {
@@ -265,12 +265,12 @@ export const BiometricCanvas: React.FC<BiometricCanvasProps> = ({
           }}
           title="Zoom out"
           aria-label="Zoom out"
-          className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white"
+          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
         >
           <ZoomOut className="w-4 h-4" />
         </button>
 
-        <span className="text-xs font-mono text-slate-300 px-1 font-semibold">
+        <span className="text-xs font-mono text-foreground px-1 font-semibold">
           {Math.round(crop.zoom * 100)}%
         </span>
 
@@ -282,12 +282,12 @@ export const BiometricCanvas: React.FC<BiometricCanvasProps> = ({
           }}
           title="Zoom in"
           aria-label="Zoom in"
-          className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white"
+          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
         >
           <ZoomIn className="w-4 h-4" />
         </button>
 
-        <div className="w-px h-4 bg-slate-800 mx-1" />
+        <div className="w-px h-4 bg-border mx-1" />
 
         <button
           type="button"
@@ -297,7 +297,7 @@ export const BiometricCanvas: React.FC<BiometricCanvasProps> = ({
           }}
           title="Rotate 90 degrees"
           aria-label="Rotate image 90 degrees"
-          className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white"
+          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
         >
           <RotateCw className="w-4 h-4" />
         </button>
@@ -307,8 +307,8 @@ export const BiometricCanvas: React.FC<BiometricCanvasProps> = ({
           onClick={() => setShowGuides(!showGuides)}
           title={showGuides ? 'Hide biometric guides' : 'Show biometric guides'}
           aria-label={showGuides ? 'Hide biometric guides' : 'Show biometric guides'}
-          className={`p-1.5 rounded-lg text-slate-300 hover:text-white ${
-            showGuides ? 'bg-emerald-500/20 text-emerald-400' : 'hover:bg-slate-800'
+          className={`p-1.5 rounded-lg text-muted-foreground hover:text-foreground ${
+            showGuides ? 'bg-primary-soft text-primary font-bold' : 'hover:bg-muted'
           }`}
         >
           {showGuides ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -322,14 +322,14 @@ export const BiometricCanvas: React.FC<BiometricCanvasProps> = ({
           }}
           title="Reset position"
           aria-label="Reset position and zoom"
-          className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-slate-200"
+          className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
         >
           <RotateCcw className="w-4 h-4" />
         </button>
       </div>
 
-      <p className="text-[11px] text-slate-400 flex items-center gap-1">
-        <Move className="w-3 h-3 text-slate-400" /> Drag to align face inside guides • Arrow keys nudge 1px
+      <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+        <Move className="w-3 h-3 text-muted-foreground" /> Drag to align face inside guides • Arrow keys nudge 1px
       </p>
     </div>
   );

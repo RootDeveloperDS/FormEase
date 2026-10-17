@@ -1,22 +1,156 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
+@custom-variant dark (&:is(.dark *));
 
+@theme inline {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --shadow-card: var(--shadow-card);
+  --shadow-lift: var(--shadow-lift);
+}
+
+:root {
+  --radius: 0.875rem;
+  /* Paper & ink: slate #0F172A on #F8FAFC */
+  --background: oklch(0.984 0.003 247.9);
+  --foreground: oklch(0.208 0.042 265.8);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.208 0.042 265.8);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.208 0.042 265.8);
+  --primary: oklch(0.47 0.11 163);
+  --primary-foreground: oklch(0.99 0.01 163);
+  --primary-soft: oklch(0.95 0.04 163);
+  --secondary: oklch(0.95 0.008 250);
+  --secondary-foreground: oklch(0.208 0.042 265.8);
+  --muted: oklch(0.955 0.006 250);
+  --muted-foreground: oklch(0.45 0.035 258);
+  --accent: oklch(0.95 0.008 250);
+  --accent-foreground: oklch(0.208 0.042 265.8);
+  --success: oklch(0.52 0.13 162.5);
+  --success-foreground: oklch(0.99 0.01 163);
+  --success-soft: oklch(0.95 0.05 162.5);
+  --warning: oklch(0.56 0.14 60);
+  --warning-foreground: oklch(0.99 0.02 85);
+  --warning-soft: oklch(0.96 0.06 85);
+  --destructive: oklch(0.55 0.21 25);
+  --destructive-foreground: oklch(0.99 0.01 25);
+  --destructive-soft: oklch(0.95 0.035 20);
+  --border: oklch(0.91 0.012 255);
+  --input: oklch(0.87 0.015 255);
+  --ring: oklch(0.6 0.15 162.5);
+  --shadow-card: 0 1px 2px oklch(0.2 0.04 265 / 0.06), 0 4px 16px -4px oklch(0.2 0.04 265 / 0.08);
+  --shadow-lift: 0 2px 4px oklch(0.2 0.04 265 / 0.06), 0 18px 40px -12px oklch(0.2 0.04 265 / 0.22);
+}
+
+.dark {
+  --background: oklch(0.12 0.02 260); /* #020617 Midnight slate */
+  --foreground: oklch(0.98 0.005 250); /* #F8FAFC Off-white */
+  --card: oklch(0.17 0.025 260); /* #0F172A Slate 900 */
+  --card-foreground: oklch(0.98 0.005 250);
+  --popover: oklch(0.17 0.025 260);
+  --popover-foreground: oklch(0.98 0.005 250);
+  --primary: oklch(0.65 0.16 163); /* Luminous emerald #10B981 */
+  --primary-foreground: oklch(0.12 0.02 260);
+  --primary-soft: oklch(0.22 0.05 163);
+  --secondary: oklch(0.22 0.025 260);
+  --secondary-foreground: oklch(0.98 0.005 250);
+  --muted: oklch(0.20 0.02 260); /* Slate 800 */
+  --muted-foreground: oklch(0.65 0.02 260); /* Slate 400 */
+  --accent: oklch(0.22 0.025 260);
+  --accent-foreground: oklch(0.98 0.005 250);
+  --success: oklch(0.65 0.16 163);
+  --success-foreground: oklch(0.12 0.02 260);
+  --success-soft: oklch(0.22 0.05 163);
+  --warning: oklch(0.75 0.15 70);
+  --warning-foreground: oklch(0.12 0.02 260);
+  --warning-soft: oklch(0.25 0.06 70);
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(0.99 0.01 25);
+  --destructive-soft: oklch(0.25 0.06 25);
+  --border: oklch(0.25 0.02 260); /* Slate 800 */
+  --input: oklch(0.28 0.02 260);
+  --ring: oklch(0.65 0.16 163);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 8px 24px -4px rgba(0, 0, 0, 0.5);
+  --shadow-lift: 0 4px 6px rgba(0, 0, 0, 0.4), 0 20px 48px -12px rgba(0, 0, 0, 0.6);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
   body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
     font-family: var(--font-sans);
-    background-color: #020617;
-    color: #f8fafc;
+    line-height: 1.6;
     overflow-x: hidden;
   }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+}
+
+/* FormEase Paper Grid (28px graph pattern with soft lines) */
+@utility paper-grid {
+  background-image:
+    linear-gradient(var(--color-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@utility checkerboard {
+  background-color: var(--color-card);
+  background-image:
+    linear-gradient(45deg, var(--color-muted) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--color-muted) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--color-muted) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--color-muted) 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
 }
 
 /* WCAG Accessible Focus Rings */
 :focus-visible {
-  outline: 2px solid #10b981;
+  outline: 3px solid var(--color-ring);
   outline-offset: 2px;
 }
 
@@ -26,14 +160,16 @@
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: var(--color-background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: var(--color-muted-foreground);
+  opacity: 0.4;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: var(--color-foreground);
+  opacity: 0.7;
 }
 
 /* Touch action utility for biometric canvas */

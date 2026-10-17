@@ -67,24 +67,24 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="diff-title"
-      className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-150"
+        className="bg-card border border-border rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] text-foreground animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950/40">
+        <div className="flex items-center justify-between p-4 border-b border-border bg-card/60">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-8 h-8 rounded-xl bg-primary-soft border border-primary/25 flex items-center justify-center text-primary">
               <Columns3 className="w-4 h-4" />
             </div>
             <div>
-              <h3 id="diff-title" className="text-sm font-bold text-slate-100">
+              <h3 id="diff-title" className="text-sm font-bold text-foreground">
                 A/B Quality Inspector: {title}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Drag the slider or use Arrow Keys to verify fine text and face sharpness
               </p>
             </div>
@@ -94,18 +94,18 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             <button
               type="button"
               onClick={() => setZoom((z) => Math.max(0.8, z - 0.2))}
-              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300"
+              className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border transition-colors"
               title="Zoom out"
             >
               <ZoomOut className="w-4 h-4" />
             </button>
-            <span className="text-xs font-mono text-slate-400 w-10 text-center">
+            <span className="text-xs font-mono text-muted-foreground w-10 text-center">
               {Math.round(zoom * 100)}%
             </span>
             <button
               type="button"
               onClick={() => setZoom((z) => Math.min(2.5, z + 0.2))}
-              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300"
+              className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground border border-border transition-colors"
               title="Zoom in"
             >
               <ZoomIn className="w-4 h-4" />
@@ -114,7 +114,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors ml-2"
+              className="p-2 rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors ml-2"
               aria-label="Close inspector"
             >
               <X className="w-5 h-5" />
@@ -123,10 +123,10 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
         </div>
 
         {/* Comparison Stage */}
-        <div className="relative flex-1 min-h-[400px] overflow-hidden bg-slate-950 flex items-center justify-center p-4 select-none">
+        <div className="relative flex-1 min-h-[400px] overflow-hidden bg-muted/30 flex items-center justify-center p-4 select-none">
           <div
             ref={containerRef}
-            className="relative max-w-full max-h-[60vh] overflow-hidden rounded-2xl border border-slate-800 shadow-2xl cursor-ew-resize touch-none"
+            className="relative max-w-full max-h-[60vh] overflow-hidden rounded-2xl border border-border shadow-2xl cursor-ew-resize touch-none bg-card"
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
@@ -154,30 +154,30 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
 
             {/* Divider Line & Curtain Handle */}
             <div
-              className="absolute top-0 bottom-0 w-1 bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.8)] pointer-events-none flex items-center justify-center"
+              className="absolute top-0 bottom-0 w-1 bg-primary shadow-[0_0_12px_rgba(16,185,129,0.8)] pointer-events-none flex items-center justify-center"
               style={{ left: `${sliderPos}%` }}
             >
-              <div className="w-7 h-7 rounded-full bg-slate-900 border-2 border-emerald-400 shadow-lg flex items-center justify-center text-emerald-400">
+              <div className="w-7 h-7 rounded-full bg-card border-2 border-primary shadow-lg flex items-center justify-center text-primary">
                 <Columns3 className="w-3.5 h-3.5" />
               </div>
             </div>
 
             {/* Badges on left & right */}
-            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700 text-xs font-mono text-slate-300 pointer-events-none backdrop-blur-sm">
-              Original: <span className="text-white font-bold">{formatBytes(originalBytes)}</span>
+            <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-card/90 border border-border text-xs font-mono text-muted-foreground pointer-events-none backdrop-blur-sm shadow-sm">
+              Original: <span className="text-foreground font-bold">{formatBytes(originalBytes)}</span>
             </div>
-            <div className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-emerald-950/90 border border-emerald-500/50 text-xs font-mono text-emerald-300 pointer-events-none backdrop-blur-sm flex items-center gap-1.5">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              Optimized: <span className="text-white font-bold">{formatBytes(compressedBytes)}</span>
+            <div className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-primary-soft/90 border border-primary/40 text-xs font-mono text-primary pointer-events-none backdrop-blur-sm flex items-center gap-1.5 shadow-sm">
+              <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+              Optimized: <span className="text-foreground font-bold">{formatBytes(compressedBytes)}</span>
             </div>
           </div>
         </div>
 
         {/* Footer info bar */}
-        <div className="p-4 bg-slate-950/60 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+        <div className="p-4 bg-card/60 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
           <div>
             Compression Factor: Saved{' '}
-            <span className="text-emerald-400 font-bold">
+            <span className="text-primary font-bold">
               {Math.max(0, Math.round((1 - compressedBytes / originalBytes) * 100))}%
             </span>{' '}
             bytes while retaining maximum biometric fidelity.
@@ -185,7 +185,7 @@ export const DiffViewer: React.FC<DiffViewerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400"
+            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary/90 transition-colors shadow-sm"
           >
             Looks Perfect
           </button>

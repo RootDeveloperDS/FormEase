@@ -328,23 +328,23 @@ export const SignatureSlotCard: React.FC = () => {
   }
 
   return (
-    <div className="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden group hover:border-slate-700/80 transition-all">
+    <div className="w-full bg-card border border-border text-card-foreground rounded-3xl p-5 sm:p-6 shadow-card hover:shadow-lift relative overflow-hidden group hover:border-blue-500/40 transition-all">
       {/* Clean, Premium Header: Uncluttered, Spacious, with Quick Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800/80">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-border">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0 shadow-sm">
+          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-500 shrink-0 shadow-sm">
             <PenLine className="w-5 h-5" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-slate-100 tracking-tight">Slot 2: Signature</h3>
+              <h3 className="text-base font-bold text-foreground tracking-tight">Slot 2: Signature</h3>
               {signatureSlot.customTargetMaxKB && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30 font-semibold shrink-0">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-500 border border-blue-500/30 font-semibold shrink-0">
                   Custom
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-400 truncate">
+            <p className="text-xs text-muted-foreground truncate">
               Official target: &lt; {Math.round(targetMaxBytes / 1024)} KB • {targetW}×{targetH} px
             </p>
           </div>
@@ -354,16 +354,16 @@ export const SignatureSlotCard: React.FC = () => {
         {signatureSlot.file && (
           <div className="flex items-center gap-2">
             <StatusBadge status={signatureSlot.status} label={signatureSlot.status === 'valid' ? '100% Compliant' : undefined} />
-            <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
-            <label className="text-xs font-semibold text-slate-300 hover:text-white cursor-pointer px-2.5 py-1.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/70 flex items-center gap-1.5 transition-all">
-              <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+            <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
+            <label className="text-xs font-semibold text-foreground hover:text-blue-500 cursor-pointer px-2.5 py-1.5 rounded-xl bg-card hover:bg-muted border border-border flex items-center gap-1.5 transition-all">
+              <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="hidden sm:inline">Replace</span>
               <input type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
             </label>
             <button
               type="button"
               onClick={() => clearSlot('signature')}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+              className="p-1.5 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive-soft transition-colors"
               title="Remove signature"
             >
               <Trash2 className="w-4 h-4" />
@@ -371,7 +371,7 @@ export const SignatureSlotCard: React.FC = () => {
             <button
               type="button"
               onClick={handleSaveSingle}
-              className="px-3.5 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all"
+              className="px-3.5 py-1.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all"
             >
               <ArrowDownToLine className="w-3.5 h-3.5" />
               <span>Save Signature</span>
@@ -388,7 +388,7 @@ export const SignatureSlotCard: React.FC = () => {
             {/* 1:1 Output Preview & Interactive Viewfinder Stage */}
             <div
               ref={containerRef}
-              className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center h-60 w-full group/preview shadow-md"
+              className="relative rounded-2xl overflow-hidden bg-muted/40 border border-border flex items-center justify-center h-60 w-full group/preview shadow-sm"
             >
               <div
                 ref={stageRef}
@@ -399,8 +399,8 @@ export const SignatureSlotCard: React.FC = () => {
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
-                className={`relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-md touch-none select-none transition-shadow ${
-                  isEditorOpen ? 'cursor-grab active:cursor-grabbing ring-2 ring-blue-400/60' : ''
+                className={`relative rounded-xl overflow-hidden bg-card border border-border shadow-sm touch-none select-none transition-shadow ${
+                  isEditorOpen ? 'cursor-grab active:cursor-grabbing ring-2 ring-blue-500/60' : ''
                 }`}
                 style={{ width: `${stageWidth}px`, height: `${stageHeight}px` }}
               >
@@ -451,7 +451,7 @@ export const SignatureSlotCard: React.FC = () => {
               </div>
 
               {/* Badges on preview */}
-              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-[11px] font-mono font-semibold text-slate-300 pointer-events-none shadow-sm">
+              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border text-[11px] font-mono font-semibold text-foreground pointer-events-none shadow-sm">
                 {formatDimensions(signatureSlot.processedWidth || targetW, signatureSlot.processedHeight || targetH)}
               </div>
 
@@ -464,10 +464,10 @@ export const SignatureSlotCard: React.FC = () => {
                   onMouseLeave={() => setIsHoldingOriginal(false)}
                   onTouchStart={() => setIsHoldingOriginal(true)}
                   onTouchEnd={() => setIsHoldingOriginal(false)}
-                  className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 shadow-sm select-none transition-all"
+                  className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-xl bg-card/90 backdrop-blur-sm border border-border text-xs font-semibold text-foreground hover:text-blue-500 flex items-center gap-1.5 shadow-sm select-none transition-all"
                   title="Hold to see original phone camera photo"
                 >
-                  <Eye className="w-3.5 h-3.5 text-blue-400" />
+                  <Eye className="w-3.5 h-3.5 text-blue-500" />
                   <span>{isHoldingOriginal ? 'Raw Desk Photo' : 'Hold to Compare'}</span>
                 </button>
               )}
@@ -480,7 +480,7 @@ export const SignatureSlotCard: React.FC = () => {
               className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
                 isEditorOpen
                   ? 'bg-blue-500 text-white border-blue-400 shadow-md shadow-blue-500/20'
-                  : 'bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700'
+                  : 'bg-muted hover:bg-card text-foreground border-border'
               }`}
             >
               <Crop className="w-3.5 h-3.5" />
@@ -489,10 +489,10 @@ export const SignatureSlotCard: React.FC = () => {
 
             {/* Expanded Tactile Crop Controls */}
             {isEditorOpen && (
-              <div className="w-full p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 animate-in fade-in duration-150">
+              <div className="w-full p-3.5 rounded-2xl bg-card border border-border space-y-2.5 animate-in fade-in duration-150">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400 font-medium">Zoom Level:</span>
-                  <span className="font-mono text-blue-400 font-bold">
+                  <span className="text-muted-foreground font-medium">Zoom Level:</span>
+                  <span className="font-mono text-blue-500 font-bold">
                     {Math.round(localCrop.zoom * 100)}%
                   </span>
                 </div>
@@ -506,7 +506,7 @@ export const SignatureSlotCard: React.FC = () => {
                       setLocalCrop(updated);
                       commitCropAndOptimize(updated);
                     }}
-                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                    className="p-1.5 rounded-lg bg-muted border border-border text-foreground hover:bg-card transition-colors"
                     title="Zoom Out"
                   >
                     <ZoomOut className="w-3.5 h-3.5" />
@@ -522,7 +522,7 @@ export const SignatureSlotCard: React.FC = () => {
                       setLocalCrop(updated);
                       commitCropAndOptimize(updated);
                     }}
-                    className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                   <button
                     type="button"
@@ -532,7 +532,7 @@ export const SignatureSlotCard: React.FC = () => {
                       setLocalCrop(updated);
                       commitCropAndOptimize(updated);
                     }}
-                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                    className="p-1.5 rounded-lg bg-muted border border-border text-foreground hover:bg-card transition-colors"
                     title="Zoom In"
                   >
                     <ZoomIn className="w-3.5 h-3.5" />
@@ -545,10 +545,10 @@ export const SignatureSlotCard: React.FC = () => {
                       setLocalCrop(updated);
                       commitCropAndOptimize(updated);
                     }}
-                    className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white text-xs flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-lg bg-muted border border-border text-foreground hover:bg-card text-xs flex items-center gap-1 transition-colors"
                     title="Rotate 90 degrees"
                   >
-                    <RotateCw className="w-3.5 h-3.5 text-blue-400" />
+                    <RotateCw className="w-3.5 h-3.5 text-blue-500" />
                     <span>90°</span>
                   </button>
                   <button
@@ -558,44 +558,44 @@ export const SignatureSlotCard: React.FC = () => {
                       setLocalCrop(reset);
                       commitCropAndOptimize(reset);
                     }}
-                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                    className="p-1.5 rounded-lg bg-muted border border-border text-foreground hover:bg-card transition-colors"
                     title="Reset Crop Position"
                   >
-                    <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+                    <RotateCcw className="w-3.5 h-3.5 text-muted-foreground" />
                   </button>
                 </div>
 
-                <p className="text-[10px] text-slate-400 text-center">
+                <p className="text-[10px] text-muted-foreground text-center">
                   💡 Drag directly to align signature • Scroll wheel to zoom • Arrow keys nudge (1px / Shift: 10px)
                 </p>
               </div>
             )}
 
             {/* Smart Paper & Ink Tone Quick Presets */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
-              <div className="flex items-center justify-between gap-1.5 pb-1 border-b border-slate-900">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Wand2 className="w-3.5 h-3.5 text-blue-400" /> Paper & Ink Cleanse
+            <div className="p-3.5 rounded-2xl bg-card border border-border space-y-2.5">
+              <div className="flex items-center justify-between gap-1.5 pb-1 border-b border-border">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Wand2 className="w-3.5 h-3.5 text-blue-500" /> Paper & Ink Cleanse
                 </span>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => applyPresetFilters(185, 1.3)}
-                    className="px-2 py-0.5 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 text-blue-300 border border-blue-500/30 text-[10px] font-semibold transition-all"
+                    className="px-2 py-0.5 rounded-lg bg-blue-500/15 hover:bg-blue-500/25 text-blue-600 dark:text-blue-300 border border-blue-500/30 text-[10px] font-semibold transition-all"
                   >
                     White Paper
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPresetFilters(210, 1.8)}
-                    className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium transition-all"
+                    className="px-2 py-0.5 rounded-lg bg-muted hover:bg-muted/80 text-foreground text-[10px] font-medium transition-all"
                   >
                     Bold Ink
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPresetFilters(120, 1.0)}
-                    className="px-2 py-0.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-medium transition-all"
+                    className="px-2 py-0.5 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground text-[10px] font-medium transition-all"
                   >
                     Original
                   </button>
@@ -605,8 +605,8 @@ export const SignatureSlotCard: React.FC = () => {
               {/* Ink Boldness Slider */}
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 font-medium">Ink Boldness:</span>
-                  <span className="font-mono text-blue-400 font-bold text-[11px]">
+                  <span className="text-foreground font-medium">Ink Boldness:</span>
+                  <span className="font-mono text-blue-500 font-bold text-[11px]">
                     {localDarkness.toFixed(1)}x
                   </span>
                 </div>
@@ -621,15 +621,15 @@ export const SignatureSlotCard: React.FC = () => {
                     setLocalDarkness(val);
                     commitFiltersAndOptimize(localBleach, val);
                   }}
-                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-blue-500"
                 />
               </div>
 
               {/* White Background Threshold Slider */}
               <div className="space-y-1 pt-1">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400 font-medium text-[11px]">Paper Whiteness:</span>
-                  <span className="font-mono text-slate-400 text-[10px]">
+                  <span className="text-muted-foreground font-medium text-[11px]">Paper Whiteness:</span>
+                  <span className="font-mono text-muted-foreground text-[10px]">
                     {localBleach} / 255
                   </span>
                 </div>
@@ -644,7 +644,7 @@ export const SignatureSlotCard: React.FC = () => {
                     setLocalBleach(val);
                     commitFiltersAndOptimize(val, localDarkness);
                   }}
-                  className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-500"
+                  className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-blue-500"
                 />
               </div>
             </div>
@@ -653,37 +653,37 @@ export const SignatureSlotCard: React.FC = () => {
           {/* RIGHT COLUMN: Control Deck & Compliance Metrics (~58% on desktop) */}
           <div className="lg:col-span-7 space-y-4">
             {/* 1. Before ➔ After Compression Strip */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div className="p-3.5 rounded-2xl bg-card border border-border flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <span className="text-slate-400 font-medium">Original File:</span>
+                <span className="text-muted-foreground font-medium">Original File:</span>
                 <span
                   className={`font-mono font-bold ${
-                    isRawOverLimit ? 'text-rose-400' : 'text-slate-300'
+                    isRawOverLimit ? 'text-rose-500' : 'text-foreground'
                   }`}
                 >
                   {formatBytes(signatureSlot.sourceBytes)}
                 </span>
                 {isRawOverLimit ? (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1 shadow-sm shadow-rose-500/20">
-                    <AlertCircle className="w-3 h-3 text-rose-400" />
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1 shadow-sm">
+                    <AlertCircle className="w-3 h-3 text-rose-500" />
                     Exceeds {Math.round(targetMaxBytes / 1024)} KB
                   </span>
                 ) : (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground">
                     OK
                   </span>
                 )}
               </div>
 
-              <span className="text-slate-600 font-bold px-1 hidden sm:inline">➔</span>
+              <span className="text-muted-foreground font-bold px-1 hidden sm:inline">➔</span>
 
               <div className="flex items-center gap-2">
-                <span className="text-slate-400 font-medium">Optimized:</span>
-                <span className="font-mono font-bold text-emerald-400">
+                <span className="text-muted-foreground font-medium">Optimized:</span>
+                <span className="font-mono font-bold text-primary">
                   {formatBytes(signatureSlot.processedBytes)}
                 </span>
                 {signatureSlot.sourceBytes > signatureSlot.processedBytes && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-soft text-primary border border-primary/30">
                     -{Math.round((1 - signatureSlot.processedBytes / signatureSlot.sourceBytes) * 100)}%
                   </span>
                 )}
@@ -721,27 +721,27 @@ export const SignatureSlotCard: React.FC = () => {
             />
 
             {/* 4. Progressive Disclosure Accordion: Advanced Dimensions & Custom Presets */}
-            <div className="border border-slate-800 rounded-2xl bg-slate-950/70 overflow-hidden">
+            <div className="border border-border rounded-2xl bg-card overflow-hidden">
               <button
                 type="button"
                 onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
-                className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900/50 transition-colors"
+                className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-foreground hover:bg-muted/50 transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <span>⚙️ Pixel Dimensions & Custom Overrides</span>
-                  <span className="font-mono text-[11px] text-slate-400 font-normal">
+                  <span className="font-mono text-[11px] text-muted-foreground font-normal">
                     ({tweakWidth}×{tweakHeight} px)
                   </span>
                 </span>
                 {isAdvancedOpen ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 )}
               </button>
 
               {isAdvancedOpen && (
-                <div className="p-4 pt-2 border-t border-slate-800/80 space-y-3.5 animate-in fade-in duration-150">
+                <div className="p-4 pt-2 border-t border-border space-y-3.5 animate-in fade-in duration-150">
                   <PixelDimensionController
                     width={tweakWidth}
                     height={tweakHeight}
@@ -776,15 +776,15 @@ export const SignatureSlotCard: React.FC = () => {
                   />
 
                   {/* Bookmark Save Action */}
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
-                    <span className="text-slate-400">Save custom configuration:</span>
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 border border-border text-xs">
+                    <span className="text-muted-foreground">Save custom configuration:</span>
                     <button
                       type="button"
                       onClick={() => {
                         setCustomPresetName(`${activePreset.name} (Sig ${tweakMaxKB}KB • ${tweakWidth}×${tweakHeight})`);
                         setIsSavePresetModalOpen(true);
                       }}
-                      className="text-blue-400 hover:text-blue-300 flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 transition-colors"
+                      className="text-blue-500 hover:text-blue-600 flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-500/30 transition-colors"
                     >
                       <BookmarkPlus className="w-3.5 h-3.5" /> Save to My Presets
                     </button>
@@ -799,17 +799,17 @@ export const SignatureSlotCard: React.FC = () => {
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          className="flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 border-2 border-dashed border-slate-800 rounded-2xl hover:border-blue-500/40 hover:bg-blue-950/10 transition-all cursor-pointer group gap-4 text-center sm:text-left"
+          className="flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 border-2 border-dashed border-border rounded-2xl hover:border-blue-500/50 hover:bg-blue-500/5 transition-all cursor-pointer group gap-4 text-center sm:text-left bg-card/50"
         >
           <label className="cursor-pointer flex flex-col sm:flex-row items-center gap-4 flex-1">
-            <div className="w-14 h-14 rounded-2xl bg-slate-800/80 group-hover:bg-blue-500/20 text-blue-400 flex items-center justify-center transition-transform group-hover:scale-105 shadow-inner shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-muted group-hover:bg-blue-500/15 text-blue-500 flex items-center justify-center transition-transform group-hover:scale-105 shadow-xs shrink-0">
               <Upload className="w-7 h-7" />
             </div>
             <div>
-              <span className="text-sm font-bold text-slate-100 group-hover:text-blue-400 transition-colors block">
+              <span className="text-sm font-bold text-foreground group-hover:text-blue-500 transition-colors block">
                 Drop photo of your handwritten signature
               </span>
-              <span className="text-xs text-slate-400 mt-1 block">
+              <span className="text-xs text-muted-foreground mt-1 block">
                 Cleans desk shadows to pure white & keeps &lt; {formatBytes(targetMaxBytes)} • Official {targetW}×{targetH} px
               </span>
             </div>
@@ -825,9 +825,9 @@ export const SignatureSlotCard: React.FC = () => {
             type="button"
             onClick={handleLoadSample}
             disabled={isLoadingSample}
-            className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-blue-500/50 text-slate-200 hover:text-blue-300 text-xs font-semibold flex items-center gap-2 shadow-sm transition-all shrink-0"
+            className="px-4 py-2.5 rounded-xl bg-card hover:bg-muted border border-border hover:border-blue-500/40 text-foreground text-xs font-semibold flex items-center gap-2 shadow-xs transition-all shrink-0"
           >
-            <Sparkles className="w-4 h-4 text-blue-400" />
+            <Sparkles className="w-4 h-4 text-blue-500" />
             <span>{isLoadingSample ? 'Generating sample...' : '✨ Try Sample Signature'}</span>
           </button>
         </div>
@@ -840,26 +840,26 @@ export const SignatureSlotCard: React.FC = () => {
           <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+            className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
             onClick={() => setIsSavePresetModalOpen(false)}
           >
             <div
-              className="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+              className="w-full max-w-sm bg-card border border-border rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150 text-foreground"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                  <BookmarkPlus className="w-4 h-4 text-blue-400" /> Save as Custom Preset
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                  <BookmarkPlus className="w-4 h-4 text-blue-500" /> Save as Custom Preset
                 </h4>
                 <button
                   type="button"
                   onClick={() => setIsSavePresetModalOpen(false)}
-                  className="text-slate-400 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-muted-foreground">
                 Save your custom {tweakMaxKB} KB signature limit so you can instantly re-use it anytime.
               </p>
               <form onSubmit={handleSavePreset} className="space-y-3">
@@ -870,19 +870,19 @@ export const SignatureSlotCard: React.FC = () => {
                   placeholder="e.g., My UPSC 20KB Signature"
                   required
                   autoFocus
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-blue-400"
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-foreground outline-none focus:border-blue-500"
                 />
                 <div className="flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setIsSavePresetModalOpen(false)}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-300"
+                    className="px-3 py-1.5 rounded-lg bg-muted text-xs text-foreground hover:bg-muted/80"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-3 py-1.5 rounded-lg bg-blue-500 text-white font-bold text-xs"
+                    className="px-3 py-1.5 rounded-lg bg-blue-500 text-white font-bold text-xs hover:bg-blue-600"
                   >
                     {saveSuccess ? 'Saved!' : 'Save Preset'}
                   </button>

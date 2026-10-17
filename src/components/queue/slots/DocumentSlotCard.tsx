@@ -138,23 +138,23 @@ export const DocumentSlotCard: React.FC = () => {
   const isRawOverLimit = documentSlot.file ? documentSlot.sourceBytes > targetMaxBytes : false;
 
   return (
-    <div className="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden group hover:border-slate-700/80 transition-all">
+    <div className="w-full bg-card border border-border text-card-foreground rounded-3xl p-5 sm:p-6 shadow-card hover:shadow-lift relative overflow-hidden group hover:border-amber-500/40 transition-all">
       {/* Clean, Premium Header: Uncluttered, Spacious, with Quick Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-800/80">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b border-border">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 shrink-0 shadow-sm">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-500 shrink-0 shadow-sm">
             <FileText className="w-5 h-5" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-slate-100 tracking-tight">Slot 3: Document</h3>
+              <h3 className="text-base font-bold text-foreground tracking-tight">Slot 3: Document</h3>
               {documentSlot.customTargetMaxKB && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold shrink-0">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 font-semibold shrink-0">
                   Custom
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-400 truncate">
+            <p className="text-xs text-muted-foreground truncate">
               Official target: &lt; {Math.round(targetMaxBytes / 1024)} KB • {tweakWidth}×{tweakHeight} px • {isPdfOutput ? 'Compliant PDF' : 'JPEG Scan'}
             </p>
           </div>
@@ -164,16 +164,16 @@ export const DocumentSlotCard: React.FC = () => {
         {documentSlot.file && (
           <div className="flex items-center gap-2">
             <StatusBadge status={documentSlot.status} label={documentSlot.status === 'valid' ? '100% Compliant' : undefined} />
-            <div className="h-4 w-px bg-slate-800 mx-1 hidden sm:block" />
-            <label className="text-xs font-semibold text-slate-300 hover:text-white cursor-pointer px-2.5 py-1.5 rounded-xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/70 flex items-center gap-1.5 transition-all">
-              <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
+            <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
+            <label className="text-xs font-semibold text-foreground hover:text-amber-500 cursor-pointer px-2.5 py-1.5 rounded-xl bg-card hover:bg-muted border border-border flex items-center gap-1.5 transition-all">
+              <RefreshCw className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="hidden sm:inline">Replace</span>
               <input type="file" accept="application/pdf,image/*" onChange={handleFileInput} className="hidden" />
             </label>
             <button
               type="button"
               onClick={() => clearSlot('document')}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+              className="p-1.5 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive-soft transition-colors"
               title="Remove document"
             >
               <Trash2 className="w-4 h-4" />
@@ -181,7 +181,7 @@ export const DocumentSlotCard: React.FC = () => {
             <button
               type="button"
               onClick={handleSaveSingle}
-              className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all"
+              className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all"
             >
               <ArrowDownToLine className="w-3.5 h-3.5" />
               <span>Save {isPdfOutput ? 'PDF' : 'Doc'}</span>
@@ -196,7 +196,7 @@ export const DocumentSlotCard: React.FC = () => {
           {/* LEFT COLUMN: Visual Document Viewport (~42% on desktop) */}
           <div className="lg:col-span-5 flex flex-col space-y-3">
             {/* 1:1 Visual Preview Stage */}
-            <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center h-60 group/preview shadow-md p-3">
+            <div className="relative rounded-2xl overflow-hidden bg-muted/40 border border-border flex items-center justify-center h-60 group/preview shadow-sm p-3">
               {isHoldingOriginal && !documentSlot.isPdf ? (
                 <img
                   src={documentSlot.sourceUrl || ''}
@@ -208,20 +208,20 @@ export const DocumentSlotCard: React.FC = () => {
                   <img
                     src={documentSlot.processedDataUrl}
                     alt="Processed document preview with legible text"
-                    className="max-h-52 w-auto object-contain rounded-md shadow-sm border border-slate-800"
+                    className="max-h-52 w-auto object-contain rounded-md shadow-sm border border-border"
                   />
                   {isPdfOutput && (
-                    <div className="absolute top-1 left-1 px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
-                      <FileCheck className="w-3.5 h-3.5 text-amber-400" /> PDF Output
+                    <div className="absolute top-1 left-1 px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1.5 shadow-sm backdrop-blur-sm">
+                      <FileCheck className="w-3.5 h-3.5 text-amber-500" /> PDF Output
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-xs text-slate-500 animate-pulse">Rendering document page...</div>
+                <div className="text-xs text-muted-foreground animate-pulse">Rendering document page...</div>
               )}
 
               {/* Dimension / Format Badge */}
-              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-[11px] font-mono font-semibold text-slate-300 shadow-sm">
+              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border text-[11px] font-mono font-semibold text-foreground shadow-sm">
                 {isPdfOutput ? 'Standard A4 PDF' : formatDimensions(documentSlot.processedWidth || 1200, documentSlot.processedHeight || 1600)}
               </div>
 
@@ -234,24 +234,24 @@ export const DocumentSlotCard: React.FC = () => {
                   onMouseLeave={() => setIsHoldingOriginal(false)}
                   onTouchStart={() => setIsHoldingOriginal(true)}
                   onTouchEnd={() => setIsHoldingOriginal(false)}
-                  className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-xl bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 shadow-sm select-none transition-all"
+                  className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-xl bg-card/90 backdrop-blur-sm border border-border text-xs font-semibold text-foreground hover:text-amber-500 flex items-center gap-1.5 shadow-sm select-none transition-all"
                   title="Hold to see original color scan"
                 >
-                  <Eye className="w-3.5 h-3.5 text-amber-400" />
+                  <Eye className="w-3.5 h-3.5 text-amber-500" />
                   <span>{isHoldingOriginal ? 'Original Scan' : 'Hold to Compare'}</span>
                 </button>
               )}
             </div>
 
             {/* Document Enhancement Toggles */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
-              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <div className="p-3.5 rounded-2xl bg-card border border-border space-y-2">
+              <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                 Document Enhancement Engine
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 {/* Grayscale Pill Toggle */}
-                <label className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 cursor-pointer select-none transition-colors">
+                <label className="flex items-center gap-2.5 p-2 rounded-xl bg-muted/60 border border-border hover:border-primary/40 cursor-pointer select-none transition-colors">
                   <input
                     type="checkbox"
                     checked={documentSlot.filters.grayscale}
@@ -259,16 +259,16 @@ export const DocumentSlotCard: React.FC = () => {
                       updateSlotFilters('document', { grayscale: e.target.checked });
                       optimizeSlot('document');
                     }}
-                    className="rounded accent-emerald-500 w-4 h-4 cursor-pointer"
+                    className="rounded accent-primary w-4 h-4 cursor-pointer"
                   />
                   <div>
-                    <span className="font-semibold text-slate-200 block">Black & White</span>
-                    <span className="text-[10px] text-emerald-400 block">-60% file size</span>
+                    <span className="font-semibold text-foreground block">Black & White</span>
+                    <span className="text-[10px] text-primary font-medium block">-60% file size</span>
                   </div>
                 </label>
 
                 {/* Text Sharpening Pill Toggle */}
-                <label className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 cursor-pointer select-none transition-colors">
+                <label className="flex items-center gap-2.5 p-2 rounded-xl bg-muted/60 border border-border hover:border-primary/40 cursor-pointer select-none transition-colors">
                   <input
                     type="checkbox"
                     checked={documentSlot.filters.sharpenText}
@@ -276,11 +276,11 @@ export const DocumentSlotCard: React.FC = () => {
                       updateSlotFilters('document', { sharpenText: e.target.checked });
                       optimizeSlot('document');
                     }}
-                    className="rounded accent-emerald-500 w-4 h-4 cursor-pointer"
+                    className="rounded accent-primary w-4 h-4 cursor-pointer"
                   />
                   <div>
-                    <span className="font-semibold text-slate-200 block">Sharpen Text</span>
-                    <span className="text-[10px] text-slate-400 block">Clear & readable</span>
+                    <span className="font-semibold text-foreground block">Sharpen Text</span>
+                    <span className="text-[10px] text-muted-foreground block">Clear & readable</span>
                   </div>
                 </label>
               </div>
@@ -290,37 +290,37 @@ export const DocumentSlotCard: React.FC = () => {
           {/* RIGHT COLUMN: Control Deck & Compliance Metrics (~58% on desktop) */}
           <div className="lg:col-span-7 space-y-4">
             {/* 1. Before ➔ After Compression Strip */}
-            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div className="p-3.5 rounded-2xl bg-card border border-border flex items-center justify-between flex-wrap gap-2 text-xs">
               <div className="flex items-center gap-2">
-                <span className="text-slate-400 font-medium">Original File:</span>
+                <span className="text-muted-foreground font-medium">Original File:</span>
                 <span
                   className={`font-mono font-bold ${
-                    isRawOverLimit ? 'text-rose-400' : 'text-slate-300'
+                    isRawOverLimit ? 'text-rose-500' : 'text-foreground'
                   }`}
                 >
                   {formatBytes(documentSlot.sourceBytes)}
                 </span>
                 {isRawOverLimit ? (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1 shadow-sm shadow-rose-500/20">
-                    <AlertCircle className="w-3 h-3 text-rose-400" />
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1 shadow-sm">
+                    <AlertCircle className="w-3 h-3 text-rose-500" />
                     Exceeds {Math.round(targetMaxBytes / 1024)} KB
                   </span>
                 ) : (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground">
                     OK
                   </span>
                 )}
               </div>
 
-              <span className="text-slate-600 font-bold px-1 hidden sm:inline">➔</span>
+              <span className="text-muted-foreground font-bold px-1 hidden sm:inline">➔</span>
 
               <div className="flex items-center gap-2">
-                <span className="text-slate-400 font-medium">Optimized:</span>
-                <span className="font-mono font-bold text-emerald-400">
+                <span className="text-muted-foreground font-medium">Optimized:</span>
+                <span className="font-mono font-bold text-primary">
                   {formatBytes(documentSlot.processedBytes)}
                 </span>
                 {documentSlot.sourceBytes > documentSlot.processedBytes && (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-soft text-primary border border-primary/30">
                     -{Math.round((1 - documentSlot.processedBytes / documentSlot.sourceBytes) * 100)}%
                   </span>
                 )}
@@ -358,27 +358,27 @@ export const DocumentSlotCard: React.FC = () => {
             />
 
             {/* 4. Progressive Disclosure Accordion: Advanced Dimensions & Custom Presets */}
-            <div className="border border-slate-800 rounded-2xl bg-slate-950/70 overflow-hidden">
+            <div className="border border-border rounded-2xl bg-card overflow-hidden">
               <button
                 type="button"
                 onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
-                className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900/50 transition-colors"
+                className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-foreground hover:bg-muted/50 transition-colors"
               >
                 <span className="flex items-center gap-2">
                   <span>⚙️ Pixel Dimensions & Custom Overrides</span>
-                  <span className="font-mono text-[11px] text-slate-400 font-normal">
+                  <span className="font-mono text-[11px] text-muted-foreground font-normal">
                     ({tweakWidth}×{tweakHeight} px)
                   </span>
                 </span>
                 {isAdvancedOpen ? (
-                  <ChevronUp className="w-4 h-4 text-slate-400" />
+                  <ChevronUp className="w-4 h-4 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 )}
               </button>
 
               {isAdvancedOpen && (
-                <div className="p-4 pt-2 border-t border-slate-800/80 space-y-3.5 animate-in fade-in duration-150">
+                <div className="p-4 pt-2 border-t border-border space-y-3.5 animate-in fade-in duration-150">
                   <PixelDimensionController
                     width={tweakWidth}
                     height={tweakHeight}
@@ -413,15 +413,15 @@ export const DocumentSlotCard: React.FC = () => {
                   />
 
                   {/* Bookmark Save Action */}
-                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs">
-                    <span className="text-slate-400">Save custom configuration:</span>
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/50 border border-border text-xs">
+                    <span className="text-muted-foreground">Save custom configuration:</span>
                     <button
                       type="button"
                       onClick={() => {
                         setCustomPresetName(`${activePreset.name} (Doc ${tweakMaxKB}KB • ${tweakWidth}×${tweakHeight})`);
                         setIsSavePresetModalOpen(true);
                       }}
-                      className="text-amber-400 hover:text-amber-300 flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 transition-colors"
+                      className="text-amber-500 hover:text-amber-600 flex items-center gap-1 font-bold px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 transition-colors"
                     >
                       <BookmarkPlus className="w-3.5 h-3.5" /> Save to My Presets
                     </button>
@@ -436,17 +436,17 @@ export const DocumentSlotCard: React.FC = () => {
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          className="flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 border-2 border-dashed border-slate-800 rounded-2xl hover:border-amber-500/40 hover:bg-amber-950/10 transition-all cursor-pointer group gap-4 text-center sm:text-left"
+          className="flex flex-col sm:flex-row items-center justify-between p-6 sm:p-8 border-2 border-dashed border-border rounded-2xl hover:border-amber-500/50 hover:bg-amber-500/5 transition-all cursor-pointer group gap-4 text-center sm:text-left bg-card/50"
         >
           <label className="cursor-pointer flex flex-col sm:flex-row items-center gap-4 flex-1">
-            <div className="w-14 h-14 rounded-2xl bg-slate-800/80 group-hover:bg-amber-500/20 text-amber-400 flex items-center justify-center transition-transform group-hover:scale-105 shadow-inner shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-muted group-hover:bg-amber-500/15 text-amber-500 flex items-center justify-center transition-transform group-hover:scale-105 shadow-xs shrink-0">
               <Upload className="w-7 h-7" />
             </div>
             <div>
-              <span className="text-sm font-bold text-slate-100 group-hover:text-amber-400 transition-colors block">
+              <span className="text-sm font-bold text-foreground group-hover:text-amber-500 transition-colors block">
                 Drop PDF or scanned marksheet/certificate
               </span>
-              <span className="text-xs text-slate-400 mt-1 block">
+              <span className="text-xs text-muted-foreground mt-1 block">
                 Auto-formats to &lt; {formatBytes(targetMaxBytes)} • {isPdfOutput ? 'Compliant Single-Page PDF' : 'JPEG Document'}
               </span>
             </div>
@@ -462,9 +462,9 @@ export const DocumentSlotCard: React.FC = () => {
             type="button"
             onClick={handleLoadSample}
             disabled={isLoadingSample}
-            className="px-4 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500/50 text-slate-200 hover:text-amber-300 text-xs font-semibold flex items-center gap-2 shadow-sm transition-all shrink-0"
+            className="px-4 py-2.5 rounded-xl bg-card hover:bg-muted border border-border hover:border-amber-500/40 text-foreground text-xs font-semibold flex items-center gap-2 shadow-xs transition-all shrink-0"
           >
-            <Sparkles className="w-4 h-4 text-amber-400" />
+            <Sparkles className="w-4 h-4 text-amber-500" />
             <span>{isLoadingSample ? 'Generating sample...' : '✨ Try Sample Document'}</span>
           </button>
         </div>
@@ -477,26 +477,26 @@ export const DocumentSlotCard: React.FC = () => {
           <div
             role="dialog"
             aria-modal="true"
-            className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+            className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
             onClick={() => setIsSavePresetModalOpen(false)}
           >
             <div
-              className="w-full max-w-sm bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150"
+              className="w-full max-w-sm bg-card border border-border rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150 text-foreground"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-                  <BookmarkPlus className="w-4 h-4 text-amber-400" /> Save as Custom Preset
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                  <BookmarkPlus className="w-4 h-4 text-amber-500" /> Save as Custom Preset
                 </h4>
                 <button
                   type="button"
                   onClick={() => setIsSavePresetModalOpen(false)}
-                  className="text-slate-400 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-muted-foreground">
                 Save your custom {tweakMaxKB} KB document limit so you can instantly re-use it anytime.
               </p>
               <form onSubmit={handleSavePreset} className="space-y-3">
@@ -507,19 +507,19 @@ export const DocumentSlotCard: React.FC = () => {
                   placeholder="e.g., My UPSC 300KB Document"
                   required
                   autoFocus
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-amber-400"
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs text-foreground outline-none focus:border-amber-500"
                 />
                 <div className="flex justify-end gap-2">
                   <button
                     type="button"
                     onClick={() => setIsSavePresetModalOpen(false)}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-300"
+                    className="px-3 py-1.5 rounded-lg bg-muted text-xs text-foreground hover:bg-muted/80"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs"
+                    className="px-3 py-1.5 rounded-lg bg-amber-500 text-white font-bold text-xs hover:bg-amber-600"
                   >
                     {saveSuccess ? 'Saved!' : 'Save Preset'}
                   </button>

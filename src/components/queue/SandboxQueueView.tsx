@@ -66,23 +66,23 @@ export const SandboxQueueView: React.FC<SandboxQueueViewProps> = ({ onOpenExport
           {sandboxQueue.map((card) => (
             <div
               key={card.id}
-              className="flex flex-col bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden group hover:border-slate-700 transition-colors"
+              className="flex flex-col bg-card border border-border text-card-foreground rounded-3xl p-5 shadow-card relative overflow-hidden group hover:border-primary/40 transition-colors"
             >
               {/* Card Header */}
               <div className="flex items-start justify-between mb-3 gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-muted border border-border flex items-center justify-center text-foreground shrink-0">
                     {card.isPdf ? (
-                      <FileText className="w-4 h-4 text-yellow-400" />
+                      <FileText className="w-4 h-4 text-amber-500" />
                     ) : (
-                      <ImageIcon className="w-4 h-4 text-emerald-400" />
+                      <ImageIcon className="w-4 h-4 text-primary" />
                     )}
                   </div>
                   <div className="min-w-0">
-                    <h4 className="text-xs font-bold text-slate-100 truncate" title={card.name}>
+                    <h4 className="text-xs font-bold text-foreground truncate" title={card.name}>
                       {card.name}
                     </h4>
-                    <span className="text-[10px] text-slate-500 font-mono">
+                    <span className="text-[10px] text-muted-foreground font-mono">
                       Raw: {formatBytes(card.sourceBytes)}
                     </span>
                   </div>
@@ -91,7 +91,7 @@ export const SandboxQueueView: React.FC<SandboxQueueViewProps> = ({ onOpenExport
               </div>
 
               {/* Card Preview Stage */}
-              <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center min-h-[160px] p-2 mb-3">
+              <div className="relative rounded-2xl overflow-hidden bg-muted/40 border border-border flex items-center justify-center min-h-[160px] p-2 mb-3 shadow-inner">
                 {card.processedDataUrl ? (
                   <div className="relative flex items-center justify-center w-full h-full">
                     <img
@@ -100,16 +100,16 @@ export const SandboxQueueView: React.FC<SandboxQueueViewProps> = ({ onOpenExport
                       className="max-h-[140px] w-auto object-contain rounded-md shadow-sm"
                     />
                     {card.isPdf && (
-                      <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-bold">
+                      <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 border border-amber-500/40 text-[9px] font-bold">
                         PDF
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="text-xs text-slate-500 animate-pulse">Processing...</div>
+                  <div className="text-xs text-muted-foreground animate-pulse">Processing...</div>
                 )}
 
-                <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-slate-900/90 border border-slate-700 text-[10px] font-mono text-slate-300">
+                <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-card/90 border border-border text-[10px] font-mono text-foreground backdrop-blur-sm shadow-sm">
                   {formatDimensions(card.processedWidth, card.processedHeight)}
                 </div>
               </div>
@@ -131,25 +131,25 @@ export const SandboxQueueView: React.FC<SandboxQueueViewProps> = ({ onOpenExport
                 />
 
                 {/* Dimension Expand Toggle */}
-                <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-950">
+                <div className="border border-border rounded-xl overflow-hidden bg-muted/30">
                   <button
                     type="button"
                     onClick={() => setOpenDimCardId(openDimCardId === card.id ? null : card.id)}
-                    className="w-full p-2 text-xs flex items-center justify-between text-slate-300 hover:text-white transition-colors"
+                    className="w-full p-2 text-xs flex items-center justify-between text-foreground hover:bg-muted/50 transition-colors"
                   >
                     <span className="flex items-center gap-1.5 font-semibold text-[11px]">
-                      <Maximize2 className="w-3 h-3 text-emerald-400" />
-                      Dimensions: <span className="font-mono text-emerald-400">{card.targetWidth}×{card.targetHeight} px</span>
+                      <Maximize2 className="w-3 h-3 text-primary" />
+                      Dimensions: <span className="font-mono text-primary">{card.targetWidth}×{card.targetHeight} px</span>
                     </span>
                     {openDimCardId === card.id ? (
-                      <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
+                      <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
                     ) : (
-                      <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                      <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                     )}
                   </button>
 
                   {openDimCardId === card.id && (
-                    <div className="p-2 pt-0 border-t border-slate-900 animate-in fade-in duration-150">
+                    <div className="p-2 pt-0 border-t border-border animate-in fade-in duration-150">
                       <PixelDimensionController
                         width={card.targetWidth}
                         height={card.targetHeight}
@@ -178,7 +178,7 @@ export const SandboxQueueView: React.FC<SandboxQueueViewProps> = ({ onOpenExport
               </div>
 
               {/* Filter checkboxes */}
-              <div className="flex items-center justify-between py-2 border-t border-slate-800 text-[11px] text-slate-400">
+              <div className="flex items-center justify-between py-2 border-t border-border text-[11px] text-muted-foreground">
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input
                     type="checkbox"
@@ -187,7 +187,7 @@ export const SandboxQueueView: React.FC<SandboxQueueViewProps> = ({ onOpenExport
                       updateSandboxCardFilters(card.id, { grayscale: e.target.checked });
                       optimizeSandboxCard(card.id);
                     }}
-                    className="rounded accent-emerald-500"
+                    className="rounded accent-primary"
                   />
                   Grayscale
                 </label>
@@ -196,7 +196,7 @@ export const SandboxQueueView: React.FC<SandboxQueueViewProps> = ({ onOpenExport
                   type="button"
                   onClick={() => setActiveDiffCardId(card.id)}
                   disabled={!card.sourceUrl || card.isPdf}
-                  className="hover:text-blue-400 disabled:opacity-40 flex items-center gap-1"
+                  className="hover:text-primary disabled:opacity-40 flex items-center gap-1"
                 >
                   <Sliders className="w-3 h-3" /> A/B Diff
                 </button>
@@ -204,18 +204,18 @@ export const SandboxQueueView: React.FC<SandboxQueueViewProps> = ({ onOpenExport
                 <button
                   type="button"
                   onClick={() => optimizeSandboxCard(card.id)}
-                  className="hover:text-emerald-400 flex items-center gap-1"
+                  className="hover:text-primary flex items-center gap-1"
                 >
                   <RefreshCw className="w-3 h-3" /> Re-run
                 </button>
               </div>
 
               {/* Card Footer Actions */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-between pt-3 border-t border-border">
                 <button
                   type="button"
                   onClick={() => removeSandboxCard(card.id)}
-                  className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10"
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive-soft"
                   title="Remove file"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -224,7 +224,7 @@ export const SandboxQueueView: React.FC<SandboxQueueViewProps> = ({ onOpenExport
                 <button
                   type="button"
                   onClick={() => handleDownloadCard(card)}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-1 border border-emerald-500/30"
+                  className="px-3 py-1.5 rounded-xl bg-primary-soft hover:bg-primary/20 text-primary text-xs font-bold flex items-center gap-1 border border-primary/30 transition-colors"
                 >
                   <ArrowDownToLine className="w-3.5 h-3.5" /> Save File
                 </button>

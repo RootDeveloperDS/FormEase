@@ -106,39 +106,39 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
   // Theme color styles
   const colorMap = {
     emerald: {
-      text: 'text-emerald-400',
-      textActive: 'text-emerald-300',
-      bgActive: 'bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20',
-      badge: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300',
-      borderActive: 'border-emerald-400',
-      lockActive: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
-      accent: 'accent-emerald-500',
+      text: 'text-primary',
+      textActive: 'text-primary',
+      bgActive: 'bg-primary text-primary-foreground font-bold shadow-md shadow-primary/20',
+      badge: 'bg-primary-soft border-primary/25 text-primary',
+      borderActive: 'border-primary',
+      lockActive: 'bg-primary-soft text-primary border-primary/30',
+      accent: 'accent-primary',
     },
     blue: {
-      text: 'text-blue-400',
-      textActive: 'text-blue-300',
+      text: 'text-blue-500',
+      textActive: 'text-blue-500',
       bgActive: 'bg-blue-500 text-white font-bold shadow-md shadow-blue-500/20',
-      badge: 'bg-blue-500/15 border-blue-500/30 text-blue-300',
+      badge: 'bg-blue-500/15 border-blue-500/30 text-blue-500',
       borderActive: 'border-blue-400',
-      lockActive: 'bg-blue-500/20 text-blue-400 border-blue-500/40',
+      lockActive: 'bg-blue-500/15 text-blue-500 border-blue-500/30',
       accent: 'accent-blue-500',
     },
     amber: {
-      text: 'text-amber-400',
-      textActive: 'text-amber-300',
-      bgActive: 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20',
-      badge: 'bg-amber-500/15 border-amber-500/30 text-amber-300',
+      text: 'text-amber-500',
+      textActive: 'text-amber-500',
+      bgActive: 'bg-amber-500 text-white font-bold shadow-md shadow-amber-500/20',
+      badge: 'bg-amber-500/15 border-amber-500/30 text-amber-500',
       borderActive: 'border-amber-400',
-      lockActive: 'bg-amber-500/20 text-amber-400 border-amber-500/40',
+      lockActive: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
       accent: 'accent-amber-500',
     },
     cyan: {
-      text: 'text-cyan-400',
-      textActive: 'text-cyan-300',
-      bgActive: 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20',
-      badge: 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300',
+      text: 'text-cyan-500',
+      textActive: 'text-cyan-500',
+      bgActive: 'bg-cyan-500 text-white font-bold shadow-md shadow-cyan-500/20',
+      badge: 'bg-cyan-500/15 border-cyan-500/30 text-cyan-500',
       borderActive: 'border-cyan-400',
-      lockActive: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40',
+      lockActive: 'bg-cyan-500/15 text-cyan-500 border-cyan-500/30',
       accent: 'accent-cyan-500',
     },
   };
@@ -250,24 +250,24 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
   const isCustomized = width !== defaultWidth || height !== defaultHeight;
 
   return (
-    <div className={`space-y-3 p-3.5 rounded-2xl bg-slate-950 border border-slate-800/90 ${className}`}>
+    <div className={`space-y-3 p-3.5 rounded-2xl bg-card border border-border shadow-sm ${className}`}>
       {/* Header: Title, Reset, Mode Toggle */}
-      <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-900">
+      <div className="flex items-center justify-between gap-2 pb-1 border-b border-border">
         <div className="flex items-center gap-2">
           <Maximize2 className={`w-3.5 h-3.5 ${theme.text}`} />
-          <span className="text-[11px] font-bold text-slate-200 tracking-wide uppercase">
+          <span className="text-[11px] font-bold text-foreground tracking-wide uppercase">
             Pixel Dimensions (px)
           </span>
         </div>
 
         <div className="flex items-center gap-1.5">
           {/* Unit Mode Switcher: PX vs Physical */}
-          <div className="flex items-center bg-slate-900 p-0.5 rounded-lg border border-slate-800 text-[10px]">
+          <div className="flex items-center bg-muted p-0.5 rounded-lg border border-border text-[10px]">
             <button
               type="button"
               onClick={() => setUnitMode('px')}
               className={`px-2 py-0.5 rounded-md font-semibold transition-all ${
-                unitMode === 'px' ? 'bg-slate-800 text-white shadow-xs' : 'text-slate-400 hover:text-slate-200'
+                unitMode === 'px' ? 'bg-card text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               Pixels (px)
@@ -277,8 +277,8 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
               onClick={() => setUnitMode('physical')}
               className={`px-2 py-0.5 rounded-md font-semibold transition-all flex items-center gap-1 ${
                 unitMode === 'physical'
-                  ? 'bg-slate-800 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-card text-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Ruler className="w-2.5 h-2.5" />
@@ -290,7 +290,7 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
             <button
               type="button"
               onClick={onReset}
-              className="text-[10px] text-slate-400 hover:text-slate-200 flex items-center gap-1 underline decoration-slate-600 pl-1"
+              className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 underline decoration-border pl-1 transition-colors"
               title={`Reset to default (${defaultWidth}×${defaultHeight} px)`}
             >
               <RotateCcw className="w-2.5 h-2.5" />
@@ -304,10 +304,10 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
       {unitMode === 'px' ? (
         <div className="space-y-2.5">
           {/* Tactile Dual Width & Height Steppers with Center Lock Button */}
-          <div className="flex items-center justify-between gap-2 bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+          <div className="flex items-center justify-between gap-2 bg-muted/40 p-2 rounded-xl border border-border">
             {/* WIDTH INPUT & STEPPERS */}
             <div className="flex-1 space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
                 Width
               </span>
               <div className="flex items-center gap-1">
@@ -315,27 +315,27 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                   type="button"
                   onClick={() => handleWidthChange(width - step)}
                   disabled={width <= minWidth}
-                  className="w-6 h-6 rounded-md bg-slate-950 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors disabled:opacity-40"
+                  className="w-6 h-6 rounded-md bg-card border border-border hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors disabled:opacity-40"
                   title={`Decrease width by ${step}px`}
                 >
                   <Minus className="w-2.5 h-2.5" />
                 </button>
-                <div className="min-w-[70px] sm:min-w-[84px] flex items-center bg-slate-950 border border-slate-700/80 rounded-lg px-2 py-1 shadow-inner">
+                <div className="min-w-[70px] sm:min-w-[84px] flex items-center bg-card border border-border rounded-lg px-2 py-1 shadow-inner">
                   <input
                     type="number"
                     min={minWidth}
                     max={maxWidth}
                     value={width}
                     onChange={(e) => handleWidthChange(Number(e.target.value))}
-                    className="w-full bg-transparent text-xs font-mono font-bold text-white text-center outline-none"
+                    className="w-full bg-transparent text-xs font-mono font-bold text-foreground text-center outline-none"
                   />
-                  <span className="text-[10px] font-mono text-slate-500 shrink-0 ml-1">px</span>
+                  <span className="text-[10px] font-mono text-muted-foreground shrink-0 ml-1">px</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleWidthChange(width + step)}
                   disabled={width >= maxWidth}
-                  className="w-6 h-6 rounded-md bg-slate-950 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors disabled:opacity-40"
+                  className="w-6 h-6 rounded-md bg-card border border-border hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors disabled:opacity-40"
                   title={`Increase width by ${step}px`}
                 >
                   <Plus className="w-2.5 h-2.5" />
@@ -351,7 +351,7 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                 className={`p-1.5 rounded-lg border transition-all flex items-center justify-center ${
                   isRatioLocked
                     ? theme.lockActive
-                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                    : 'bg-card text-muted-foreground border-border hover:text-foreground'
                 }`}
                 title={
                   isRatioLocked
@@ -361,14 +361,14 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
               >
                 {isRatioLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
               </button>
-              <span className="text-[8.5px] font-medium text-slate-400 mt-0.5">
+              <span className="text-[8.5px] font-medium text-muted-foreground mt-0.5">
                 {isRatioLocked ? 'Locked' : 'Free'}
               </span>
             </div>
 
             {/* HEIGHT INPUT & STEPPERS */}
             <div className="flex-1 space-y-1">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
                 Height
               </span>
               <div className="flex items-center gap-1">
@@ -376,27 +376,27 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                   type="button"
                   onClick={() => handleHeightChange(height - step)}
                   disabled={height <= minHeight}
-                  className="w-6 h-6 rounded-md bg-slate-950 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors disabled:opacity-40"
+                  className="w-6 h-6 rounded-md bg-card border border-border hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors disabled:opacity-40"
                   title={`Decrease height by ${step}px`}
                 >
                   <Minus className="w-2.5 h-2.5" />
                 </button>
-                <div className="min-w-[70px] sm:min-w-[84px] flex items-center bg-slate-950 border border-slate-700/80 rounded-lg px-2 py-1 shadow-inner">
+                <div className="min-w-[70px] sm:min-w-[84px] flex items-center bg-card border border-border rounded-lg px-2 py-1 shadow-inner">
                   <input
                     type="number"
                     min={minHeight}
                     max={maxHeight}
                     value={height}
                     onChange={(e) => handleHeightChange(Number(e.target.value))}
-                    className="w-full bg-transparent text-xs font-mono font-bold text-white text-center outline-none"
+                    className="w-full bg-transparent text-xs font-mono font-bold text-foreground text-center outline-none"
                   />
-                  <span className="text-[10px] font-mono text-slate-500 shrink-0 ml-1">px</span>
+                  <span className="text-[10px] font-mono text-muted-foreground shrink-0 ml-1">px</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => handleHeightChange(height + step)}
                   disabled={height >= maxHeight}
-                  className="w-6 h-6 rounded-md bg-slate-950 border border-slate-700 hover:border-slate-600 text-slate-300 hover:text-white flex items-center justify-center transition-colors disabled:opacity-40"
+                  className="w-6 h-6 rounded-md bg-card border border-border hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors disabled:opacity-40"
                   title={`Increase height by ${step}px`}
                 >
                   <Plus className="w-2.5 h-2.5" />
@@ -407,10 +407,10 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
         </div>
       ) : (
         /* Physical cm/in Conversion Deck */
-        <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2.5">
-          <div className="flex items-center justify-between text-[11px] text-slate-300">
+        <div className="p-2.5 rounded-xl bg-muted/40 border border-border space-y-2.5">
+          <div className="flex items-center justify-between text-[11px] text-foreground">
             <span className="font-semibold flex items-center gap-1">
-              <Ruler className="w-3 h-3 text-emerald-400" />
+              <Ruler className="w-3 h-3 text-primary" />
               Notice Specifications:
             </span>
             <div className="flex items-center gap-1">
@@ -419,10 +419,10 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                   key={u}
                   type="button"
                   onClick={() => setPhysicalUnit(u)}
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition-colors ${
                     physicalUnit === u
-                      ? 'bg-emerald-500 text-slate-950'
-                      : 'bg-slate-950 text-slate-400 border border-slate-800'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-card text-muted-foreground border border-border hover:text-foreground'
                   }`}
                 >
                   {u}
@@ -433,7 +433,7 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
 
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="text-[10px] text-slate-400 block mb-0.5">Width ({physicalUnit})</label>
+              <label className="text-[10px] text-muted-foreground block mb-0.5">Width ({physicalUnit})</label>
               <input
                 type="number"
                 step="0.1"
@@ -445,12 +445,12 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                   setPhysW(val);
                   handleApplyPhysical(val, physH, physicalUnit, physicalDPI);
                 }}
-                className="w-full bg-slate-950 border border-slate-700 rounded-md px-2 py-1 text-xs font-mono font-bold text-white text-center"
+                className="w-full bg-card border border-border rounded-md px-2 py-1 text-xs font-mono font-bold text-foreground text-center"
               />
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 block mb-0.5">Height ({physicalUnit})</label>
+              <label className="text-[10px] text-muted-foreground block mb-0.5">Height ({physicalUnit})</label>
               <input
                 type="number"
                 step="0.1"
@@ -462,12 +462,12 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                   setPhysH(val);
                   handleApplyPhysical(physW, val, physicalUnit, physicalDPI);
                 }}
-                className="w-full bg-slate-950 border border-slate-700 rounded-md px-2 py-1 text-xs font-mono font-bold text-white text-center"
+                className="w-full bg-card border border-border rounded-md px-2 py-1 text-xs font-mono font-bold text-foreground text-center"
               />
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-400 block mb-0.5">Resolution</label>
+              <label className="text-[10px] text-muted-foreground block mb-0.5">Resolution</label>
               <select
                 value={physicalDPI}
                 onChange={(e) => {
@@ -475,7 +475,7 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                   setPhysicalDPI(dpi);
                   handleApplyPhysical(physW, physH, physicalUnit, dpi);
                 }}
-                className="w-full bg-slate-950 border border-slate-700 rounded-md px-1 py-1 text-xs font-mono text-emerald-400 font-semibold"
+                className="w-full bg-card border border-border rounded-md px-1 py-1 text-xs font-mono text-primary font-semibold"
               >
                 <option value={200}>200 DPI</option>
                 <option value={300}>300 DPI</option>
@@ -484,16 +484,16 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
             </div>
           </div>
 
-          <p className="text-[10px] text-slate-400 font-mono text-center">
+          <p className="text-[10px] text-muted-foreground font-mono text-center">
             Calculated: {physW}×{physH} {physicalUnit} @ {physicalDPI} DPI ={' '}
-            <strong className="text-emerald-400">{width}×{height} px</strong>
+            <strong className="text-primary">{width}×{height} px</strong>
           </p>
         </div>
       )}
 
       {/* Smart Official Dimension Chips Row */}
       <div className="space-y-1.5 pt-1">
-        <span className="text-[10px] font-semibold text-slate-400 block">
+        <span className="text-[10px] font-semibold text-muted-foreground block">
           Official Dimension Standards:
         </span>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
@@ -507,12 +507,12 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
                 className={`py-1 px-1.5 rounded-xl border text-center transition-all ${
                   isMatch
                     ? `${theme.bgActive} border-transparent scale-[1.02]`
-                    : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700 hover:bg-slate-850'
+                    : 'bg-muted text-muted-foreground border-border hover:border-primary/40 hover:bg-card hover:text-foreground'
                 }`}
               >
                 <span className="block text-[11px] font-bold font-mono">{p.label}</span>
                 {p.subLabel && (
-                  <span className={`block text-[9px] truncate ${isMatch ? 'opacity-90' : 'text-slate-400'}`}>
+                  <span className={`block text-[9px] truncate ${isMatch ? 'opacity-90' : 'text-muted-foreground'}`}>
                     {p.subLabel}
                   </span>
                 )}
@@ -523,23 +523,23 @@ export const PixelDimensionController: React.FC<PixelDimensionControllerProps> =
       </div>
 
       {/* Silhouette Visual Feedback & Compliance Pill */}
-      <div className="flex items-center justify-between pt-1 border-t border-slate-900 text-[11px]">
+      <div className="flex items-center justify-between pt-1 border-t border-border text-[11px]">
         <div className="flex items-center gap-2">
           {/* Mini Silhouette Box */}
           <div
-            className="rounded border border-emerald-500/50 bg-emerald-500/20 flex items-center justify-center transition-all"
+            className="rounded border border-primary/40 bg-primary-soft flex items-center justify-center transition-all"
             style={{ width: `${silW}px`, height: `${silH}px` }}
             title={`Silhouette proportion: ${ratioVal.toFixed(2)}:1`}
           />
-          <span className="font-mono text-xs text-slate-300 font-semibold">
+          <span className="font-mono text-xs text-foreground font-semibold">
             {width} × {height} px
           </span>
-          <span className="text-[10px] text-slate-500 font-mono">
+          <span className="text-[10px] text-muted-foreground font-mono">
             ({getRatioString(width, height)})
           </span>
         </div>
 
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary px-2 py-0.5 rounded-full bg-primary-soft border border-primary/30">
           <CheckCircle2 className="w-2.5 h-2.5" />
           <span>Strict Bounds</span>
         </span>

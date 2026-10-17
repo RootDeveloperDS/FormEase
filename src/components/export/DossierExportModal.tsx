@@ -142,25 +142,25 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
       role="dialog"
       aria-modal="true"
       aria-labelledby="export-modal-title"
-      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
+        className="bg-card border border-border rounded-3xl w-full max-w-2xl overflow-hidden shadow-lift flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150 text-card-foreground"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-950/40">
+        <div className="flex items-center justify-between p-5 border-b border-border bg-muted/30">
           <div className="flex items-center gap-3">
             <FormEaseLogo size={36} />
             <div>
-              <h2 id="export-modal-title" className="text-base font-bold text-slate-100 flex items-center gap-2">
+              <h2 id="export-modal-title" className="text-base font-bold text-foreground flex items-center gap-2">
                 <span>Verified Dossier Pre-Flight Audit</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  v3.1.0.0 • Ready to Bundle
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary-soft text-primary border border-primary/30">
+                  v4.0.0.0 • Ready to Bundle
                 </span>
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 All files formatted, verified, and bundled for portal submission
               </p>
             </div>
@@ -168,7 +168,7 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+            className="p-2 rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -178,30 +178,30 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
         {/* Audit Checklist Table */}
         <div className="flex-1 overflow-y-auto p-5 space-y-3">
           {exportItems.length === 0 ? (
-            <div className="text-center py-10 text-slate-500 text-sm">
+            <div className="text-center py-10 text-muted-foreground text-sm">
               No processed files found. Please upload documents to begin.
             </div>
           ) : (
             exportItems.map((item, idx) => (
               <div
                 key={item.id}
-                className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between gap-4"
+                className="p-4 rounded-2xl bg-muted/40 border border-border flex items-center justify-between gap-4"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     {item.passed ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
                     ) : (
-                      <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0" />
+                      <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
                     )}
-                    <span className="text-sm font-bold text-slate-100 truncate">
+                    <span className="text-sm font-bold text-foreground truncate">
                       {item.title}
                     </span>
                   </div>
-                  <div className="text-xs font-mono text-slate-400 mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                  <div className="text-xs font-mono text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-1">
                     <span>File: {getStandardizedFileName(item, idx)}</span>
                     <span>•</span>
-                    <span className="text-emerald-400 font-semibold">
+                    <span className="text-primary font-semibold">
                       {formatBytes(item.finalBytes)}
                     </span>
                     <span>(Limit: {formatBytes(item.targetMaxBytes)})</span>
@@ -213,7 +213,7 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
                 <button
                   type="button"
                   onClick={() => handleDownloadSingle(item, idx)}
-                  className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 shrink-0 border border-slate-700"
+                  className="px-3 py-2 rounded-xl bg-card hover:bg-muted text-foreground text-xs font-semibold flex items-center gap-1.5 shrink-0 border border-border shadow-sm transition-all"
                   title="Download single file"
                 >
                   <ArrowDownToLine className="w-3.5 h-3.5" /> Save
@@ -223,20 +223,20 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
           )}
 
           {/* Validation Manifest Notice */}
-          <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-800 text-xs text-slate-400 flex items-start gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-2xl bg-muted/30 border border-border text-xs text-muted-foreground flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
             <div>
-              <span className="text-slate-200 font-semibold">Includes VALIDATION_SUMMARY.txt: </span>
+              <span className="text-foreground font-semibold">Includes VALIDATION_SUMMARY.txt: </span>
               A machine-readable and human-readable audit manifest detailing byte counts, pixel dimensions, and mathematical convergence proof is automatically included in the ZIP archive.
             </div>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="p-5 bg-slate-950/60 border-t border-slate-800 flex items-center justify-between gap-3">
-          <div className="text-xs text-slate-400">
+        <div className="p-5 bg-muted/20 border-t border-border flex items-center justify-between gap-3">
+          <div className="text-xs text-muted-foreground">
             Total Package Size:{' '}
-            <span className="text-slate-200 font-bold font-mono">
+            <span className="text-foreground font-bold font-mono">
               {formatBytes(exportItems.reduce((acc, i) => acc + i.finalBytes, 0))}
             </span>
           </div>
@@ -245,7 +245,7 @@ export const DossierExportModal: React.FC<DossierExportModalProps> = ({ isOpen, 
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm font-semibold"
+              className="px-4 py-2.5 rounded-xl bg-card border border-border text-foreground hover:bg-muted text-sm font-semibold transition-colors"
             >
               Cancel
             </button>

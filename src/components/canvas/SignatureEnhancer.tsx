@@ -16,17 +16,17 @@ export const SignatureEnhancer: React.FC<SignatureEnhancerProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4 ${className}`}>
+    <div className={`p-4 rounded-2xl bg-card border border-border shadow-sm space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <div className="w-7 h-7 rounded-lg bg-primary-soft border border-primary/20 flex items-center justify-center text-primary">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
               Signature Ink Clarifier
             </h4>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-muted-foreground">
               Bleaches desk shadows to #FFFFFF & sharpens blue/black ink
             </p>
           </div>
@@ -38,7 +38,7 @@ export const SignatureEnhancer: React.FC<SignatureEnhancerProps> = ({
             onFilterChange({ bleachThreshold: 185, inkDarkness: 1.3 });
             onApply();
           }}
-          className="text-xs flex items-center gap-1 text-slate-400 hover:text-slate-200"
+          className="text-xs flex items-center gap-1 text-muted-foreground hover:text-foreground"
           title="Reset ink filters"
         >
           <RotateCcw className="w-3 h-3" /> Auto
@@ -48,10 +48,10 @@ export const SignatureEnhancer: React.FC<SignatureEnhancerProps> = ({
       {/* Bleach Threshold Slider */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs">
-          <label htmlFor="bleach-slider" className="text-slate-300 font-medium">
+          <label htmlFor="bleach-slider" className="text-foreground font-medium">
             Paper Bleach Intensity
           </label>
-          <span className="font-mono text-emerald-400 font-semibold">
+          <span className="font-mono text-primary font-semibold">
             {filters.bleachThreshold} / 255
           </span>
         </div>
@@ -68,9 +68,9 @@ export const SignatureEnhancer: React.FC<SignatureEnhancerProps> = ({
           onMouseUp={onApply}
           onTouchEnd={onApply}
           onKeyUp={onApply}
-          className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+          className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
         />
-        <div className="flex justify-between text-[10px] text-slate-400">
+        <div className="flex justify-between text-[10px] text-muted-foreground">
           <span>Gentle</span>
           <span>Aggressive (#FFFFFF)</span>
         </div>
@@ -79,10 +79,10 @@ export const SignatureEnhancer: React.FC<SignatureEnhancerProps> = ({
       {/* Ink Darken Slider */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs">
-          <label htmlFor="ink-slider" className="text-slate-300 font-medium">
+          <label htmlFor="ink-slider" className="text-foreground font-medium">
             Pen Stroke Contrast Boost
           </label>
-          <span className="font-mono text-blue-400 font-semibold">
+          <span className="font-mono text-primary font-semibold">
             {filters.inkDarkness.toFixed(1)}x
           </span>
         </div>
@@ -99,16 +99,16 @@ export const SignatureEnhancer: React.FC<SignatureEnhancerProps> = ({
           onMouseUp={onApply}
           onTouchEnd={onApply}
           onKeyUp={onApply}
-          className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+          className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
         />
-        <div className="flex justify-between text-[10px] text-slate-400">
+        <div className="flex justify-between text-[10px] text-muted-foreground">
           <span>Natural Ink</span>
           <span>Ultra-Bold High Contrast</span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-400 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
-        <Wand2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+      <div className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground bg-muted/40 p-2.5 rounded-xl border border-border">
+        <Wand2 className="w-3.5 h-3.5 text-primary shrink-0" />
         <span>
           Eliminates off-white paper wrinkles so signatures remain crisp under 20 KB.
         </span>

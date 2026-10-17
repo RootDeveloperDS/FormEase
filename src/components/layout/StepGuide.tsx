@@ -14,18 +14,18 @@ export const StepGuide: React.FC = () => {
     (documentSlot.status === 'valid' || !activePreset.slots.document);
 
   return (
-    <nav aria-label="Workflow progress" className="w-full max-w-5xl mx-auto px-4 py-3">
+    <nav aria-label="Workflow progress" className="w-full max-w-5xl mx-auto px-4 py-1">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Step 1 */}
-        <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 text-slate-300">
-          <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
+        <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-card border border-border shadow-card text-foreground">
+          <div className="w-9 h-9 rounded-xl bg-primary-soft border border-primary/20 text-primary flex items-center justify-center font-bold text-sm shrink-0">
             1
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 text-xs text-primary font-semibold uppercase tracking-wider">
               <Settings2 className="w-3.5 h-3.5" /> Selected Portal
             </div>
-            <div className="text-sm font-bold text-slate-100 truncate">
+            <div className="text-sm font-bold text-foreground truncate">
               {activeMode === 'sandbox' ? 'Multi-Batch Sandbox' : activePreset.name}
             </div>
           </div>
@@ -33,26 +33,26 @@ export const StepGuide: React.FC = () => {
 
         {/* Step 2 */}
         <div
-          className={`flex items-center gap-3 p-3 rounded-2xl border transition-colors ${
+          className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all ${
             hasAnyUpload
-              ? 'bg-slate-900/80 border-emerald-500/30 text-slate-200'
-              : 'bg-slate-900/40 border-slate-800/80 text-slate-400'
+              ? 'bg-card border-primary/40 shadow-card text-foreground'
+              : 'bg-card/60 border-border text-muted-foreground'
           }`}
         >
           <div
             className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
               hasAnyUpload
-                ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                : 'bg-slate-800 text-slate-400'
+                ? 'bg-primary text-primary-foreground shadow-md'
+                : 'bg-muted text-muted-foreground'
             }`}
           >
             2
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <UploadCloud className="w-3.5 h-3.5" /> Drop Files
             </div>
-            <div className="text-sm font-semibold text-slate-200 truncate">
+            <div className="text-sm font-semibold text-foreground truncate">
               {hasAnyUpload ? 'Files Auto-Aligning' : 'Drop Camera Photos / PDF'}
             </div>
           </div>
@@ -60,26 +60,26 @@ export const StepGuide: React.FC = () => {
 
         {/* Step 3 */}
         <div
-          className={`flex items-center gap-3 p-3 rounded-2xl border transition-colors ${
+          className={`flex items-center gap-3 p-3.5 rounded-2xl border transition-all ${
             isAllValid && hasAnyUpload
-              ? 'bg-emerald-950/20 border-emerald-500/40 text-emerald-200'
-              : 'bg-slate-900/40 border-slate-800/80 text-slate-400'
+              ? 'bg-primary-soft border-primary/40 text-primary shadow-card'
+              : 'bg-card/60 border-border text-muted-foreground'
           }`}
         >
           <div
             className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${
               isAllValid && hasAnyUpload
-                ? 'bg-emerald-500 text-slate-950'
-                : 'bg-slate-800 text-slate-500'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground'
             }`}
           >
             3
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               <FileCheck className="w-3.5 h-3.5" /> Export Dossier
             </div>
-            <div className="text-sm font-semibold truncate">
+            <div className="text-sm font-semibold truncate text-foreground">
               {isAllValid && hasAnyUpload ? '1-Click Verified ZIP Ready' : 'Download Verified Pack'}
             </div>
           </div>
@@ -88,3 +88,5 @@ export const StepGuide: React.FC = () => {
     </nav>
   );
 };
+
+export default StepGuide;

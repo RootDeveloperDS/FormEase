@@ -87,10 +87,10 @@ export const MultiDropzone: React.FC<MultiDropzoneProps> = ({
           inputRef.current?.click();
         }
       }}
-      className={`relative rounded-3xl border-2 border-dashed p-8 sm:p-12 text-center transition-all cursor-pointer select-none group focus-visible:ring-2 focus-visible:ring-emerald-400 ${
+      className={`relative rounded-3xl border-2 border-dashed p-8 sm:p-12 text-center transition-all cursor-pointer select-none group focus-visible:ring-2 focus-visible:ring-primary ${
         isDragOver
-          ? 'border-emerald-400 bg-emerald-950/20 scale-[1.01]'
-          : 'border-slate-800 bg-slate-900/40 hover:bg-slate-900/70 hover:border-slate-700'
+          ? 'border-primary bg-primary-soft scale-[1.01]'
+          : 'border-border bg-card/60 hover:bg-card hover:border-primary/50 shadow-card'
       } ${className}`}
     >
       <input
@@ -106,33 +106,33 @@ export const MultiDropzone: React.FC<MultiDropzoneProps> = ({
         <div
           className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-lg ${
             isDragOver
-              ? 'bg-emerald-500 text-slate-950'
-              : 'bg-slate-800/80 text-emerald-400 border border-slate-700/80 group-hover:bg-emerald-500/20'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-primary-soft text-primary border border-primary/20'
           }`}
         >
           <UploadCloud className="w-7 h-7" />
         </div>
 
         <div>
-          <h3 className="text-base font-bold text-slate-100 group-hover:text-emerald-400 transition-colors">
+          <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
             {title}
           </h3>
-          <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
+          <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
             {description}
           </p>
         </div>
 
-        <div className="flex items-center gap-4 text-[11px] text-slate-400 font-medium pt-1">
+        <div className="flex items-center gap-4 text-[11px] text-muted-foreground font-medium pt-1">
           <span className="flex items-center gap-1.5">
-            <ImageIcon className="w-3.5 h-3.5 text-blue-400" /> Auto-Righting EXIF
+            <ImageIcon className="w-3.5 h-3.5 text-blue-500" /> Auto-Righting EXIF
           </span>
-          <span className="text-slate-700">•</span>
+          <span className="text-border">•</span>
           <span className="flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> Near-Ceiling Sizing
+            <Sparkles className="w-3.5 h-3.5 text-primary" /> Near-Ceiling Sizing
           </span>
-          <span className="text-slate-700">•</span>
+          <span className="text-border">•</span>
           <span className="flex items-center gap-1.5">
-            <FileText className="w-3.5 h-3.5 text-yellow-400" /> Grayscale PDF Support
+            <FileText className="w-3.5 h-3.5 text-amber-500" /> Grayscale PDF Support
           </span>
         </div>
 
@@ -141,9 +141,9 @@ export const MultiDropzone: React.FC<MultiDropzoneProps> = ({
             type="button"
             onClick={handleLoadSamples}
             disabled={isLoadingSample}
-            className="mt-2 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-300 text-[11px] font-semibold flex items-center gap-1.5 shadow-sm transition-all"
+            className="mt-2 px-3.5 py-1.5 rounded-xl bg-card hover:bg-muted border border-border hover:border-primary/50 text-foreground hover:text-primary text-[11px] font-semibold flex items-center gap-1.5 shadow-sm transition-all"
           >
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
             <span>{isLoadingSample ? 'Generating 3 sample batch files...' : '✨ Try 3 Sample Batch Files'}</span>
           </button>
         )}

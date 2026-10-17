@@ -9,9 +9,10 @@ import { ActionButton } from '../common/ActionButton';
 interface CustomPresetModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialPreset?: PortalPreset | null;
 }
 
-export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, onClose }) => {
+export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, onClose, initialPreset }) => {
   const { customPresets, saveCustomPreset, deleteCustomPreset, duplicateCustomPreset, exportPresetsJson, importPresetsJson, setActivePreset } = usePresetStore();
 
   useEffect(() => {
@@ -48,12 +49,47 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
 
   const [importError, setImportError] = useState('');
 
-  // Dynamically initialize form inputs from currently active preset & active slots
+  // Dynamically initialize form inputs from initialPreset OR currently active preset & active slots
   useEffect(() => {
     if (isOpen) {
+      if (initialPreset) {
+        setName(initialPreset.name);
+        const pSlot = initialPreset.slots.photo;
+        if (pSlot) {
+          setPhotoMaxKB(Math.round(pSlot.targetMaxBytes / 1024));
+          setPhotoMinKB(pSlot.targetMinBytes ? Math.round(pSlot.targetMinBytes / 1024) : 0);
+          setPhotoWidth(pSlot.width || 350);
+          setPhotoHeight(pSlot.height || 350);
+          setPhotoRatio(pSlot.aspectRatio || '1:1');
+          setPhotoFormat(pSlot.defaultFormat || 'image/jpeg');
+        }
+        const sSlot = initialPreset.slots.signature;
+        setHasSignature(!!sSlot);
+        if (sSlot) {
+          setSigMaxKB(Math.round(sSlot.targetMaxBytes / 1024));
+          setSigMinKB(sSlot.targetMinBytes ? Math.round(sSlot.targetMinBytes / 1024) : 0);
+          setSigWidth(sSlot.width || 280);
+          setSigHeight(sSlot.height || 120);
+          setSigRatio(sSlot.aspectRatio || '2:1');
+        }
+        const dSlot = initialPreset.slots.document;
+        setHasDocument(!!dSlot);
+        if (dSlot) {
+          setDocMaxKB(Math.round(dSlot.targetMaxBytes / 1024));
+          setDocWidth(dSlot.width || 1200);
+          setDocHeight(dSlot.height || 1600);
+          setDocRatio(dSlot.aspectRatio || 'Free');
+          setDocFormat(dSlot.defaultFormat || 'application/pdf');
+          setDocGrayscale(dSlot.isGrayscaleDoc ?? true);
+        }
+        setActiveTab('create');
+        return;
+      }
+
       const activePreset = usePresetStore.getState().getActivePreset();
       const { photoSlot, signatureSlot, documentSlot } = useDossierStore.getState();
 
+      setName('');
       // Photo slot values
       const pMax = photoSlot.customTargetMaxKB || (activePreset.slots.photo ? Math.round(activePreset.slots.photo.targetMaxBytes / 1024) : 50);
       const pMin = photoSlot.customTargetMinKB || (activePreset.slots.photo?.targetMinBytes ? Math.round(activePreset.slots.photo.targetMinBytes / 1024) : 20);
@@ -96,7 +132,7 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
       setDocFormat(dFormat);
       setDocGrayscale(activePreset.slots.document?.isGrayscaleDoc ?? true);
     }
-  }, [isOpen]);
+  }, [isOpen, initialPreset]);
 
   if (!isOpen) return null;
 
@@ -104,14 +140,14 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
     e.preventDefault();
     if (!name.trim()) return;
 
-    const presetId = `custom_${Date.now()}`;
+    const presetId = initialPreset?.id || `custom_${Date.now()}`;
     const newPreset: PortalPreset = {
       id: presetId,
       name: name.trim(),
-      country: 'CUSTOM',
-      countryFlag: '⚙️',
-      authority: 'User Custom Preset',
-      category: 'general',
+      country: initialPreset?.country || 'CUSTOM',
+      countryFlag: initialPreset?.countryFlag || '⚙️',
+      authority: initialPreset?.authority || 'User Custom Preset',
+      category: initialPreset?.category || 'general',
       description: `Custom: Photo < ${photoMaxKB} KB${hasSignature ? `, Signature < ${sigMaxKB} KB` : ''}${hasDocument ? `, Doc < ${docMaxKB} KB` : ''}`,
       isCustom: true,
       slots: {
@@ -212,24 +248,24 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
       role="dialog"
       aria-modal="true"
       aria-labelledby="preset-builder-title"
-      className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
+      className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-150"
+        className="bg-card border border-border rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col text-foreground animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-800 bg-slate-950/50">
+        <div className="flex items-center justify-between p-5 border-b border-border bg-card/60">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-9 h-9 rounded-xl bg-primary-soft border border-primary/25 flex items-center justify-center text-primary">
               <Sliders className="w-5 h-5" />
             </div>
             <div>
-              <h2 id="preset-builder-title" className="text-base font-bold text-slate-100">
+              <h2 id="preset-builder-title" className="text-base font-bold text-foreground">
                 Custom Preset Manager & Builder
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Define exact file bounds and save to browser localStorage
               </p>
             </div>
@@ -237,7 +273,7 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+            className="p-2 rounded-xl bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -245,14 +281,14 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
         </div>
 
         {/* Tab Buttons */}
-        <div className="flex border-b border-slate-800 bg-slate-950/20 px-5 pt-3 gap-2">
+        <div className="flex border-b border-border bg-muted/30 px-5 pt-3 gap-2">
           <button
             type="button"
             onClick={() => setActiveTab('create')}
             className={`pb-3 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 ${
               activeTab === 'create'
-                ? 'border-emerald-400 text-emerald-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             <Plus className="w-4 h-4" /> Create New Preset
@@ -262,8 +298,8 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
             onClick={() => setActiveTab('manage')}
             className={`pb-3 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 ${
               activeTab === 'manage'
-                ? 'border-emerald-400 text-emerald-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             Saved Presets ({customPresets.length})
@@ -276,7 +312,7 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
             <form onSubmit={handleSave} className="space-y-5">
               {/* Preset Name */}
               <div>
-                <label htmlFor="preset-name" className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                <label htmlFor="preset-name" className="block text-xs font-semibold text-foreground uppercase tracking-wider mb-1.5">
                   Preset Profile Name
                 </label>
                 <input
@@ -286,62 +322,62 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                   placeholder="e.g. State Scholarship Portal 2026, MIT Application, etc."
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-600 focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  className="w-full bg-background border border-border rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                 />
               </div>
 
               {/* Photo Constraints */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
-                <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-3">
+                <div className="text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5">
                   Slot 1: Photograph Constraints
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Max Ceiling (KB)</label>
+                    <label className="text-[11px] text-muted-foreground block mb-1">Max Ceiling (KB)</label>
                     <input
                       type="number"
                       min="5"
                       max="10000"
                       value={photoMaxKB}
                       onChange={(e) => setPhotoMaxKB(Number(e.target.value))}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                      className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Min Floor (KB)</label>
+                    <label className="text-[11px] text-muted-foreground block mb-1">Min Floor (KB)</label>
                     <input
                       type="number"
                       min="0"
                       max={photoMaxKB}
                       value={photoMinKB}
                       onChange={(e) => setPhotoMinKB(Number(e.target.value))}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                      className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Width (px)</label>
+                    <label className="text-[11px] text-muted-foreground block mb-1">Width (px)</label>
                     <input
                       type="number"
                       min="50"
                       max="5000"
                       value={photoWidth}
                       onChange={(e) => setPhotoWidth(Number(e.target.value))}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                      className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground font-mono focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Height (px)</label>
+                    <label className="text-[11px] text-muted-foreground block mb-1">Height (px)</label>
                     <input
                       type="number"
                       min="50"
                       max="5000"
                       value={photoHeight}
                       onChange={(e) => setPhotoHeight(Number(e.target.value))}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                      className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground font-mono focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Aspect Ratio</label>
+                    <label className="text-[11px] text-muted-foreground block mb-1">Aspect Ratio</label>
                     <select
                       value={photoRatio}
                       onChange={(e) => {
@@ -351,7 +387,7 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                         else if (r === '35:45') { setPhotoWidth(350); setPhotoHeight(450); }
                         else if (r === '4:3') { setPhotoWidth(600); setPhotoHeight(450); }
                       }}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"
+                      className="w-full bg-background border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                     >
                       <option value="1:1">1:1 Square</option>
                       <option value="35:45">35:45 Passport</option>
@@ -360,11 +396,11 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                     </select>
                   </div>
                   <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Output Format</label>
+                    <label className="text-[11px] text-muted-foreground block mb-1">Output Format</label>
                     <select
                       value={photoFormat}
                       onChange={(e) => setPhotoFormat(e.target.value as OutputFormat)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"
+                      className="w-full bg-background border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                     >
                       <option value="image/jpeg">JPEG (Standard)</option>
                       <option value="image/png">PNG</option>
@@ -375,17 +411,17 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
               </div>
 
               {/* Signature Constraints */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-primary uppercase tracking-wider">
                     Slot 2: Signature Constraints
                   </span>
-                  <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
                     <input
                       type="checkbox"
                       checked={hasSignature}
                       onChange={(e) => setHasSignature(e.target.checked)}
-                      className="rounded accent-emerald-500"
+                      className="rounded accent-primary"
                     />
                     Include Signature Slot
                   </label>
@@ -393,43 +429,43 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                 {hasSignature && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Max Ceiling (KB)</label>
+                      <label className="text-[11px] text-muted-foreground block mb-1">Max Ceiling (KB)</label>
                       <input
                         type="number"
                         value={sigMaxKB}
                         onChange={(e) => setSigMaxKB(Number(e.target.value))}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                        className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Min Floor (KB)</label>
+                      <label className="text-[11px] text-muted-foreground block mb-1">Min Floor (KB)</label>
                       <input
                         type="number"
                         value={sigMinKB}
                         onChange={(e) => setSigMinKB(Number(e.target.value))}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                        className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Width (px)</label>
+                      <label className="text-[11px] text-muted-foreground block mb-1">Width (px)</label>
                       <input
                         type="number"
                         min="50"
                         max="5000"
                         value={sigWidth}
                         onChange={(e) => setSigWidth(Number(e.target.value))}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                        className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground font-mono focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Height (px)</label>
+                      <label className="text-[11px] text-muted-foreground block mb-1">Height (px)</label>
                       <input
                         type="number"
                         min="20"
                         max="5000"
                         value={sigHeight}
                         onChange={(e) => setSigHeight(Number(e.target.value))}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                        className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground font-mono focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -437,17 +473,17 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
               </div>
 
               {/* Document Constraints */}
-              <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
+              <div className="p-4 rounded-2xl bg-muted/40 border border-border space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-yellow-400 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-primary uppercase tracking-wider">
                     Slot 3: Document / Marksheet Constraints
                   </span>
-                  <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer">
                     <input
                       type="checkbox"
                       checked={hasDocument}
                       onChange={(e) => setHasDocument(e.target.checked)}
-                      className="rounded accent-emerald-500"
+                      className="rounded accent-primary"
                     />
                     Include Document Slot
                   </label>
@@ -455,56 +491,56 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                 {hasDocument && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Max Ceiling (KB)</label>
+                      <label className="text-[11px] text-muted-foreground block mb-1">Max Ceiling (KB)</label>
                       <input
                         type="number"
                         min="5"
                         max="20000"
                         value={docMaxKB}
                         onChange={(e) => setDocMaxKB(Number(e.target.value))}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                        className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Width (px)</label>
+                      <label className="text-[11px] text-muted-foreground block mb-1">Width (px)</label>
                       <input
                         type="number"
                         min="50"
                         max="10000"
                         value={docWidth}
                         onChange={(e) => setDocWidth(Number(e.target.value))}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                        className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground font-mono focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Height (px)</label>
+                      <label className="text-[11px] text-muted-foreground block mb-1">Height (px)</label>
                       <input
                         type="number"
                         min="50"
                         max="10000"
                         value={docHeight}
                         onChange={(e) => setDocHeight(Number(e.target.value))}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                        className="w-full bg-background border border-border rounded-lg px-2.5 py-1.5 text-xs text-foreground font-mono focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Output Format</label>
+                      <label className="text-[11px] text-muted-foreground block mb-1">Output Format</label>
                       <select
                         value={docFormat}
                         onChange={(e) => setDocFormat(e.target.value as any)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"
+                        className="w-full bg-background border border-border rounded-lg px-2 py-1.5 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-primary outline-none transition-all"
                       >
                         <option value="application/pdf">PDF Document</option>
                         <option value="image/jpeg">JPEG Image</option>
                       </select>
                     </div>
                     <div className="flex items-center pt-2 col-span-2 sm:col-span-4">
-                      <label className="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
+                      <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
                         <input
                           type="checkbox"
                           checked={docGrayscale}
                           onChange={(e) => setDocGrayscale(e.target.checked)}
-                          className="rounded accent-emerald-500"
+                          className="rounded accent-primary"
                         />
                         Grayscale Desaturate (-60% payload size)
                       </label>
@@ -517,7 +553,7 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 text-sm font-medium"
+                  className="px-4 py-2.5 rounded-xl bg-muted text-foreground hover:bg-muted/80 text-sm font-medium transition-colors"
                 >
                   Cancel
                 </button>
@@ -529,18 +565,18 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="text-xs text-slate-400">
+                <div className="text-xs text-muted-foreground">
                   Presets are stored in browser localStorage and persist across restarts.
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 flex items-center gap-1.5">
+                  <label className="cursor-pointer px-3 py-1.5 rounded-lg bg-muted hover:bg-card text-xs font-semibold text-foreground border border-border flex items-center gap-1.5 transition-colors">
                     <Upload className="w-3.5 h-3.5" /> Import JSON
                     <input type="file" accept=".json" onChange={handleImportJson} className="hidden" />
                   </label>
                   <button
                     type="button"
                     onClick={handleExportJson}
-                    className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-lg bg-muted hover:bg-card text-xs font-semibold text-foreground border border-border flex items-center gap-1.5 transition-colors"
                   >
                     <Download className="w-3.5 h-3.5" /> Export JSON
                   </button>
@@ -548,13 +584,13 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
               </div>
 
               {importError && (
-                <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs">
+                <div className="p-3 rounded-xl bg-destructive-soft border border-destructive/30 text-destructive text-xs">
                   {importError}
                 </div>
               )}
 
               {customPresets.length === 0 ? (
-                <div className="text-center py-12 text-slate-500 text-sm">
+                <div className="text-center py-12 text-muted-foreground text-sm">
                   No custom presets saved yet. Switch to "Create New Preset" to configure your first profile.
                 </div>
               ) : (
@@ -562,11 +598,11 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                   {customPresets.map((preset) => (
                     <div
                       key={preset.id}
-                      className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between"
+                      className="p-3.5 rounded-xl bg-card border border-border flex items-center justify-between hover:border-primary/40 transition-colors"
                     >
                       <div>
-                        <div className="text-sm font-bold text-slate-100">{preset.name}</div>
-                        <div className="text-xs text-slate-400 mt-0.5">{preset.description}</div>
+                        <div className="text-sm font-bold text-foreground">{preset.name}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{preset.description}</div>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <button
@@ -575,14 +611,14 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                             setActivePreset(preset.id);
                             onClose();
                           }}
-                          className="px-3 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 text-xs font-semibold"
+                          className="px-3 py-1 rounded-lg bg-primary-soft text-primary hover:bg-primary/20 text-xs font-semibold transition-colors"
                         >
                           Select
                         </button>
                         <button
                           type="button"
                           onClick={() => duplicateCustomPreset(preset.id)}
-                          className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white"
+                          className="p-1.5 rounded-lg bg-muted text-muted-foreground hover:text-foreground transition-colors"
                           title="Duplicate"
                         >
                           <Copy className="w-3.5 h-3.5" />
@@ -590,7 +626,7 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                         <button
                           type="button"
                           onClick={() => deleteCustomPreset(preset.id)}
-                          className="p-1.5 rounded-lg bg-slate-800 text-rose-400 hover:bg-rose-500/20"
+                          className="p-1.5 rounded-lg bg-muted text-destructive hover:bg-destructive-soft transition-colors"
                           title="Delete"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
