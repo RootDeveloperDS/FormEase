@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenExportModal }) => {
               Form<span className="text-emerald-400">Ease</span>
             </span>
             <span className="inline-flex items-center text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 uppercase tracking-wider">
-              v3.0
+              v3.1
             </span>
             {/* <span className="hidden sm:inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-850 border border-slate-800 text-slate-400 uppercase tracking-wider">
               Client-Side

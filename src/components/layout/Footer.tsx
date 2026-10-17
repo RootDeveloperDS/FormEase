@@ -19,7 +19,7 @@ import { usePresetStore } from '../../store/usePresetStore';
 import { DEFAULT_PRESETS } from '../../core/presets/defaultPresets';
 
 export const Footer: React.FC = () => {
-  const { setMode } = useDossierStore();
+  const { setMode, resetAllSlotCustomTargets, optimizeAllSlots } = useDossierStore();
   const { setActivePreset } = usePresetStore();
 
   const handleNavToMode = (mode: 'dossier' | 'sandbox') => {
@@ -28,9 +28,11 @@ export const Footer: React.FC = () => {
   };
 
   const handleSelectPreset = (presetId: string) => {
+    resetAllSlotCustomTargets();
     setActivePreset(presetId);
     setMode('dossier');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    optimizeAllSlots();
   };
 
   const socialLinks = [
@@ -368,7 +370,7 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-white">FormEase</span>
             <span className="text-[10px] font-mono font-bold text-emerald-400 px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
-              v3.0
+              v3.1
             </span>
             <span className="text-slate-700">•</span>
             <span>&copy; {new Date().getFullYear()} All rights reserved.</span>

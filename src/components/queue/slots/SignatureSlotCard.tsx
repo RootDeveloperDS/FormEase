@@ -3,7 +3,12 @@ import { createPortal } from 'react-dom';
 import {
   PenLine,
   Upload,
+  Crop,
   Eye,
+  RotateCw,
+  RotateCcw,
+  ZoomIn,
+  ZoomOut,
   ArrowDownToLine,
   Trash2,
   RefreshCw,
@@ -16,6 +21,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import { useDossierStore } from '../../../store/useDossierStore';
+import type { CropState } from '../../../store/useDossierStore';
 import { usePresetStore } from '../../../store/usePresetStore';
 import { formatBytes, formatDimensions } from '../../../utils/byteFormatter';
 import { ByteCounter } from '../../common/ByteCounter';
@@ -31,6 +37,7 @@ export const SignatureSlotCard: React.FC = () => {
     signatureSlot,
     setSlotFile,
     clearSlot,
+    updateSlotCrop,
     updateSlotFilters,
     updateSlotTarget,
     resetSlotCustomTarget,
@@ -42,11 +49,27 @@ export const SignatureSlotCard: React.FC = () => {
   const requirement = activePreset.slots.signature;
 
   // Local UI states
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isHoldingOriginal, setIsHoldingOriginal] = useState(false);
   const [isSavePresetModalOpen, setIsSavePresetModalOpen] = useState(false);
   const [customPresetName, setCustomPresetName] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+
+  // Local crop state for butter-smooth 120 FPS interaction with ZERO canvas resets
+  const [localCrop, setLocalCrop] = useState<CropState>({
+    zoom: signatureSlot.crop.zoom || 1.0,
+    panX: signatureSlot.crop.panX || 0,
+    panY: signatureSlot.crop.panY || 0,
+    rotation: signatureSlot.crop.rotation || 0,
+  });
+
+  // Stage & Drag refs
+  const stageRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0, startPanX: 0, startPanY: 0 });
+  const debouncedCropCommitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Local slider states for 0-latency smooth thumb movement without firing 100s of heavy filters
   const [localBleach, setLocalBleach] = useState<number>(signatureSlot.filters.bleachThreshold || 185);
@@ -77,11 +100,114 @@ export const SignatureSlotCard: React.FC = () => {
     }
   };
 
-  // Sync local sliders when slot file changes
+  // Sync local crop & sliders when slot file changes
   useEffect(() => {
+    setLocalCrop({
+      zoom: signatureSlot.crop.zoom || 1.0,
+      panX: signatureSlot.crop.panX || 0,
+      panY: signatureSlot.crop.panY || 0,
+      rotation: signatureSlot.crop.rotation || 0,
+    });
     setLocalBleach(signatureSlot.filters.bleachThreshold || 185);
     setLocalDarkness(signatureSlot.filters.inkDarkness || 1.3);
   }, [signatureSlot.file]);
+
+  const commitCropAndOptimize = useCallback(
+    (newCrop: CropState) => {
+      if (debouncedCropCommitRef.current) {
+        clearTimeout(debouncedCropCommitRef.current);
+      }
+      debouncedCropCommitRef.current = setTimeout(() => {
+        updateSlotCrop('signature', newCrop);
+        optimizeSlot('signature');
+      }, 280);
+    },
+    [updateSlotCrop, optimizeSlot]
+  );
+
+  // Non-passive wheel listener: only active when user is in adjusting/crop mode (isEditorOpen)
+  useEffect(() => {
+    if (!isEditorOpen) return;
+    const el = containerRef.current || stageRef.current;
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const delta = e.deltaY < 0 ? 0.08 : -0.08;
+      setLocalCrop((prev) => {
+        const nextZoom = Math.min(3.5, Math.max(0.6, Math.round((prev.zoom + delta) * 100) / 100));
+        const updated = { ...prev, zoom: nextZoom };
+        commitCropAndOptimize(updated);
+        return updated;
+      });
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, [isEditorOpen, commitCropAndOptimize]);
+
+  // Pointer Drag Handlers (120 FPS GPU-accelerated motion with ZERO blanking)
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (!isEditorOpen) return;
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      startPanX: localCrop.panX,
+      startPanY: localCrop.panY,
+    };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging || !isEditorOpen) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+    const nextPanX = Math.round(dragStartRef.current.startPanX + dx);
+    const nextPanY = Math.round(dragStartRef.current.startPanY + dy);
+    setLocalCrop((prev) => ({ ...prev, panX: nextPanX, panY: nextPanY }));
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (isDragging) {
+      setIsDragging(false);
+      try {
+        (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {}
+      commitCropAndOptimize(localCrop);
+    }
+  };
+
+  // Keyboard Nudge Handlers (1px default, 10px with Shift)
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isEditorOpen) return;
+    const step = e.shiftKey ? 10 : 1;
+    let handled = false;
+    let nextPanX = localCrop.panX;
+    let nextPanY = localCrop.panY;
+
+    if (e.key === 'ArrowUp') {
+      nextPanY -= step;
+      handled = true;
+    } else if (e.key === 'ArrowDown') {
+      nextPanY += step;
+      handled = true;
+    } else if (e.key === 'ArrowLeft') {
+      nextPanX -= step;
+      handled = true;
+    } else if (e.key === 'ArrowRight') {
+      nextPanX += step;
+      handled = true;
+    }
+
+    if (handled) {
+      e.preventDefault();
+      const updated = { ...localCrop, panX: nextPanX, panY: nextPanY };
+      setLocalCrop(updated);
+      commitCropAndOptimize(updated);
+    }
+  };
 
   // Debounced filter commit: only runs once when slider thumb motion pauses
   const debouncedCommitRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -105,6 +231,7 @@ export const SignatureSlotCard: React.FC = () => {
   useEffect(() => {
     return () => {
       if (debouncedCommitRef.current) clearTimeout(debouncedCommitRef.current);
+      if (debouncedCropCommitRef.current) clearTimeout(debouncedCropCommitRef.current);
     };
   }, []);
 
@@ -184,6 +311,22 @@ export const SignatureSlotCard: React.FC = () => {
 
   const isRawOverLimit = signatureSlot.file ? signatureSlot.sourceBytes > targetMaxBytes : false;
 
+  const containerMaxW = 280;
+  const containerMaxH = 192;
+  const maxBoxAspect = containerMaxW / containerMaxH;
+  const aspectRatioVal = Math.max(0.01, targetW / targetH);
+
+  let stageWidth: number;
+  let stageHeight: number;
+
+  if (aspectRatioVal >= maxBoxAspect) {
+    stageWidth = containerMaxW;
+    stageHeight = Math.max(8, Math.round(containerMaxW / aspectRatioVal));
+  } else {
+    stageHeight = containerMaxH;
+    stageWidth = Math.max(8, Math.round(containerMaxH * aspectRatioVal));
+  }
+
   return (
     <div className="w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden group hover:border-slate-700/80 transition-all">
       {/* Clean, Premium Header: Uncluttered, Spacious, with Quick Actions */}
@@ -242,26 +385,73 @@ export const SignatureSlotCard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* LEFT COLUMN: Visual Paper Studio Canvas (~42% on desktop) */}
           <div className="lg:col-span-5 flex flex-col space-y-3">
-            {/* 1:1 Output Preview Stage: Dark studio stage with clean paper specimen */}
-            <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center h-60 p-4 group/preview shadow-md">
-              {isHoldingOriginal ? (
-                <img
-                  src={signatureSlot.sourceUrl || ''}
-                  alt="Raw uploaded signature"
-                  className="max-h-52 w-auto object-contain rounded-lg shadow-sm border border-slate-800"
-                />
-              ) : signatureSlot.processedDataUrl ? (
-                <img
-                  src={signatureSlot.processedDataUrl}
-                  alt="Clean signature on crisp white paper"
-                  className="max-h-52 w-auto object-contain rounded-lg shadow-sm border border-slate-800"
-                />
-              ) : (
-                <div className="text-xs text-slate-500 animate-pulse">Cleaning background ink...</div>
-              )}
+            {/* 1:1 Output Preview & Interactive Viewfinder Stage */}
+            <div
+              ref={containerRef}
+              className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center h-60 w-full group/preview shadow-md"
+            >
+              <div
+                ref={stageRef}
+                tabIndex={0}
+                role="region"
+                aria-label="Signature alignment stage. Drag to position, scroll to zoom."
+                onKeyDown={handleKeyDown}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                className={`relative rounded-xl overflow-hidden bg-slate-900 border border-slate-700/80 shadow-md touch-none select-none transition-shadow ${
+                  isEditorOpen ? 'cursor-grab active:cursor-grabbing ring-2 ring-blue-400/60' : ''
+                }`}
+                style={{ width: `${stageWidth}px`, height: `${stageHeight}px` }}
+              >
+                {signatureSlot.sourceUrl && (
+                  isHoldingOriginal ? (
+                    <img
+                      src={signatureSlot.sourceUrl}
+                      alt="Raw uploaded signature"
+                      draggable={false}
+                      className="w-full h-full object-cover pointer-events-none select-none block"
+                    />
+                  ) : !isEditorOpen && signatureSlot.processedDataUrl ? (
+                    <img
+                      src={signatureSlot.processedDataUrl}
+                      alt="Clean signature on crisp white paper"
+                      draggable={false}
+                      className="w-full h-full object-cover pointer-events-none select-none block"
+                    />
+                  ) : (
+                    <img
+                      src={signatureSlot.sourceUrl}
+                      alt="Signature framing"
+                      draggable={false}
+                      className="w-full h-full object-cover pointer-events-none select-none block"
+                      style={{
+                        transform: `translate(${localCrop.panX}px, ${localCrop.panY}px) scale(${localCrop.zoom}) rotate(${localCrop.rotation}deg)`,
+                        transformOrigin: 'center center',
+                        transition: isDragging ? 'none' : 'transform 0.12s ease-out',
+                      }}
+                    />
+                  )
+                )}
+
+                {/* Signature Alignment Baseline Guide Overlay (when editor is active) */}
+                {isEditorOpen && stageWidth >= 60 && stageHeight >= 40 && (
+                  <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none z-10 animate-in fade-in duration-150"
+                    viewBox="0 0 100 100"
+                    preserveAspectRatio="none"
+                  >
+                    <line x1="50" y1="10" x2="50" y2="90" stroke="#3b82f6" strokeWidth="0.8" strokeDasharray="2 3" opacity="0.4" />
+                    <line x1="8" y1="65" x2="92" y2="65" stroke="#60a5fa" strokeWidth="1.2" strokeDasharray="3 2" opacity="0.85" />
+                    <text x="50" y="60" fill="#93c5fd" fontSize="4" textAnchor="middle" fontWeight="bold">
+                      Signature Baseline
+                    </text>
+                  </svg>
+                )}
+              </div>
 
               {/* Badges on preview */}
-              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-[11px] font-mono font-semibold text-slate-300">
+              <div className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-[11px] font-mono font-semibold text-slate-300 pointer-events-none shadow-sm">
                 {formatDimensions(signatureSlot.processedWidth || targetW, signatureSlot.processedHeight || targetH)}
               </div>
 
@@ -282,6 +472,104 @@ export const SignatureSlotCard: React.FC = () => {
                 </button>
               )}
             </div>
+
+            {/* Beginner-Friendly Crop & Position Button */}
+            <button
+              type="button"
+              onClick={() => setIsEditorOpen(!isEditorOpen)}
+              className={`w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
+                isEditorOpen
+                  ? 'bg-blue-500 text-white border-blue-400 shadow-md shadow-blue-500/20'
+                  : 'bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700'
+              }`}
+            >
+              <Crop className="w-3.5 h-3.5" />
+              <span>{isEditorOpen ? '✓ Done Framing (Position Locked)' : '✂️ Adjust Signature Crop & Framing'}</span>
+            </button>
+
+            {/* Expanded Tactile Crop Controls */}
+            {isEditorOpen && (
+              <div className="w-full p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400 font-medium">Zoom Level:</span>
+                  <span className="font-mono text-blue-400 font-bold">
+                    {Math.round(localCrop.zoom * 100)}%
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextZoom = Math.max(0.6, Math.round((localCrop.zoom - 0.1) * 100) / 100);
+                      const updated = { ...localCrop, zoom: nextZoom };
+                      setLocalCrop(updated);
+                      commitCropAndOptimize(updated);
+                    }}
+                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                    title="Zoom Out"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                  <input
+                    type="range"
+                    min="0.6"
+                    max="3.5"
+                    step="0.05"
+                    value={localCrop.zoom}
+                    onChange={(e) => {
+                      const updated = { ...localCrop, zoom: Number(e.target.value) };
+                      setLocalCrop(updated);
+                      commitCropAndOptimize(updated);
+                    }}
+                    className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextZoom = Math.min(3.5, Math.round((localCrop.zoom + 0.1) * 100) / 100);
+                      const updated = { ...localCrop, zoom: nextZoom };
+                      setLocalCrop(updated);
+                      commitCropAndOptimize(updated);
+                    }}
+                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                    title="Zoom In"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextRot = ((localCrop.rotation || 0) + 90) % 360;
+                      const updated = { ...localCrop, rotation: nextRot };
+                      setLocalCrop(updated);
+                      commitCropAndOptimize(updated);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white text-xs flex items-center gap-1"
+                    title="Rotate 90 degrees"
+                  >
+                    <RotateCw className="w-3.5 h-3.5 text-blue-400" />
+                    <span>90°</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const reset = { zoom: 1.0, panX: 0, panY: 0, rotation: 0 };
+                      setLocalCrop(reset);
+                      commitCropAndOptimize(reset);
+                    }}
+                    className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 hover:text-white"
+                    title="Reset Crop Position"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+                  </button>
+                </div>
+
+                <p className="text-[10px] text-slate-400 text-center">
+                  💡 Drag directly to align signature • Scroll wheel to zoom • Arrow keys nudge (1px / Shift: 10px)
+                </p>
+              </div>
+            )}
 
             {/* Smart Paper & Ink Tone Quick Presets */}
             <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">

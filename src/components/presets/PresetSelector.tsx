@@ -7,7 +7,7 @@ import { CustomPresetModal } from './CustomPresetModal';
 
 export const PresetSelector: React.FC = () => {
   const { allPresets, activePresetId, setActivePreset, getActivePreset } = usePresetStore();
-  const { optimizeAllSlots } = useDossierStore();
+  const { optimizeAllSlots, resetAllSlotCustomTargets } = useDossierStore();
 
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -29,6 +29,7 @@ export const PresetSelector: React.FC = () => {
   });
 
   const handleSelect = async (id: string) => {
+    resetAllSlotCustomTargets();
     setActivePreset(id);
     setIsOpen(false);
     await optimizeAllSlots();

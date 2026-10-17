@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { SlotRequirement } from '../core/presets/presetTypes';
+import type { SlotRequirement, PortalPreset } from '../core/presets/presetTypes';
 import { createOrientedCanvas } from '../core/algorithms/exifCorrector';
 import { renderPdfToCanvas, wrapCanvasToCompliantPdf } from '../core/algorithms/pdfProcessor';
 import { binarizeSignatureCanvas } from '../core/algorithms/binarizeSignature';
@@ -92,6 +92,7 @@ interface DossierState {
     }
   ) => Promise<void>;
   resetSlotCustomTarget: (slotKey: 'photo' | 'signature' | 'document') => Promise<void>;
+  resetAllSlotCustomTargets: () => void;
   saveCurrentAsCustomPreset: (presetName: string) => string;
   optimizeSlot: (slotKey: 'photo' | 'signature' | 'document') => Promise<void>;
   optimizeAllSlots: () => Promise<void>;
@@ -285,6 +286,38 @@ export const useDossierStore = create<DossierState>((set, get) => ({
     await get().optimizeSlot(slotKey);
   },
 
+  resetAllSlotCustomTargets: () => {
+    set((state) => ({
+      photoSlot: {
+        ...state.photoSlot,
+        customTargetMaxKB: undefined,
+        customTargetMinKB: undefined,
+        customWidth: undefined,
+        customHeight: undefined,
+        customAspectRatio: undefined,
+        customAspectRatioValue: undefined,
+      },
+      signatureSlot: {
+        ...state.signatureSlot,
+        customTargetMaxKB: undefined,
+        customTargetMinKB: undefined,
+        customWidth: undefined,
+        customHeight: undefined,
+        customAspectRatio: undefined,
+        customAspectRatioValue: undefined,
+      },
+      documentSlot: {
+        ...state.documentSlot,
+        customTargetMaxKB: undefined,
+        customTargetMinKB: undefined,
+        customWidth: undefined,
+        customHeight: undefined,
+        customAspectRatio: undefined,
+        customAspectRatioValue: undefined,
+      },
+    }));
+  },
+
   saveCurrentAsCustomPreset: (presetName: string) => {
     const activePreset = usePresetStore.getState().getActivePreset();
     const pSlot = get().photoSlot;
@@ -294,50 +327,124 @@ export const useDossierStore = create<DossierState>((set, get) => ({
     const newId = `custom_${Date.now()}`;
     const cleanName = presetName.trim() || `${activePreset.name} (Custom)`;
 
-    const customPreset = {
+    const customPreset: PortalPreset = {
       ...activePreset,
       id: newId,
       name: cleanName,
-      country: 'CUSTOM' as const,
+      country: 'CUSTOM',
       countryFlag: '⚙️',
       authority: 'Custom Preset Profile',
       description: `Tailored constraints saved on ${new Date().toLocaleDateString()}`,
       isCustom: true,
       slots: {
-        ...(activePreset.slots.photo && {
-          photo: {
-            ...activePreset.slots.photo,
-            targetMaxBytes: pSlot.customTargetMaxKB ? pSlot.customTargetMaxKB * 1024 : activePreset.slots.photo.targetMaxBytes,
-            targetMinBytes: pSlot.customTargetMinKB ? pSlot.customTargetMinKB * 1024 : activePreset.slots.photo.targetMinBytes,
-            width: pSlot.customWidth || activePreset.slots.photo.width,
-            height: pSlot.customHeight || activePreset.slots.photo.height,
-            aspectRatio: pSlot.customAspectRatio || activePreset.slots.photo.aspectRatio,
-            aspectRatioValue: pSlot.customAspectRatioValue || activePreset.slots.photo.aspectRatioValue,
-          },
-        }),
-        ...(activePreset.slots.signature && {
-          signature: {
-            ...activePreset.slots.signature,
-            targetMaxBytes: sSlot.customTargetMaxKB ? sSlot.customTargetMaxKB * 1024 : activePreset.slots.signature.targetMaxBytes,
-            targetMinBytes: sSlot.customTargetMinKB ? sSlot.customTargetMinKB * 1024 : activePreset.slots.signature.targetMinBytes,
-            width: sSlot.customWidth || activePreset.slots.signature.width,
-            height: sSlot.customHeight || activePreset.slots.signature.height,
-            aspectRatio: sSlot.customAspectRatio || activePreset.slots.signature.aspectRatio,
-            aspectRatioValue: sSlot.customAspectRatioValue || activePreset.slots.signature.aspectRatioValue,
-          },
-        }),
-        ...(activePreset.slots.document && {
-          document: {
-            ...activePreset.slots.document,
-            targetMaxBytes: dSlot.customTargetMaxKB ? dSlot.customTargetMaxKB * 1024 : activePreset.slots.document.targetMaxBytes,
-            targetMinBytes: dSlot.customTargetMinKB ? dSlot.customTargetMinKB * 1024 : activePreset.slots.document.targetMinBytes,
-          },
-        }),
+        ...(pSlot.customTargetMaxKB || pSlot.customWidth || activePreset.slots.photo
+          ? {
+              photo: {
+                ...(activePreset.slots.photo || {
+                  id: `${newId}-photo`,
+                  type: 'photo' as const,
+                  title: 'Custom Photo Target',
+                  description: 'Custom photo requirement',
+                  targetMaxBytes: 50 * 1024,
+                  width: 350,
+                  height: 350,
+                  aspectRatio: '1:1',
+                  aspectRatioValue: 1,
+                  allowedFormats: ['image/jpeg' as const],
+                  defaultFormat: 'image/jpeg' as const,
+                  biometricOverlay: true,
+                }),
+                targetMaxBytes: pSlot.customTargetMaxKB
+                  ? pSlot.customTargetMaxKB * 1024
+                  : activePreset.slots.photo?.targetMaxBytes || 50 * 1024,
+                targetMinBytes: pSlot.customTargetMinKB
+                  ? pSlot.customTargetMinKB * 1024
+                  : activePreset.slots.photo?.targetMinBytes,
+                width: pSlot.customWidth || activePreset.slots.photo?.width || 350,
+                height: pSlot.customHeight || activePreset.slots.photo?.height || 350,
+                aspectRatio: pSlot.customAspectRatio || activePreset.slots.photo?.aspectRatio || '1:1',
+                aspectRatioValue:
+                  pSlot.customAspectRatioValue ||
+                  (pSlot.customWidth && pSlot.customHeight
+                    ? pSlot.customWidth / pSlot.customHeight
+                    : activePreset.slots.photo?.aspectRatioValue || 1),
+              },
+            }
+          : {}),
+        ...(sSlot.customTargetMaxKB || sSlot.customWidth || activePreset.slots.signature
+          ? {
+              signature: {
+                ...(activePreset.slots.signature || {
+                  id: `${newId}-sig`,
+                  type: 'signature' as const,
+                  title: 'Custom Signature Target',
+                  description: 'Custom signature requirement',
+                  targetMaxBytes: 20 * 1024,
+                  width: 280,
+                  height: 120,
+                  aspectRatio: '2:1',
+                  aspectRatioValue: 280 / 120,
+                  allowedFormats: ['image/jpeg' as const],
+                  defaultFormat: 'image/jpeg' as const,
+                }),
+                targetMaxBytes: sSlot.customTargetMaxKB
+                  ? sSlot.customTargetMaxKB * 1024
+                  : activePreset.slots.signature?.targetMaxBytes || 20 * 1024,
+                targetMinBytes: sSlot.customTargetMinKB
+                  ? sSlot.customTargetMinKB * 1024
+                  : activePreset.slots.signature?.targetMinBytes,
+                width: sSlot.customWidth || activePreset.slots.signature?.width || 280,
+                height: sSlot.customHeight || activePreset.slots.signature?.height || 120,
+                aspectRatio: sSlot.customAspectRatio || activePreset.slots.signature?.aspectRatio || '2:1',
+                aspectRatioValue:
+                  sSlot.customAspectRatioValue ||
+                  (sSlot.customWidth && sSlot.customHeight
+                    ? sSlot.customWidth / sSlot.customHeight
+                    : activePreset.slots.signature?.aspectRatioValue || 280 / 120),
+              },
+            }
+          : {}),
+        ...(dSlot.customTargetMaxKB || dSlot.customWidth || activePreset.slots.document
+          ? {
+              document: {
+                ...(activePreset.slots.document || {
+                  id: `${newId}-doc`,
+                  type: 'document' as const,
+                  title: 'Custom Document Target',
+                  description: 'Custom document requirement',
+                  targetMaxBytes: 300 * 1024,
+                  width: 1200,
+                  height: 1600,
+                  aspectRatio: 'Free',
+                  aspectRatioValue: 1200 / 1600,
+                  allowedFormats: ['application/pdf' as const, 'image/jpeg' as const],
+                  defaultFormat: 'application/pdf' as const,
+                  isGrayscaleDoc: true,
+                }),
+                targetMaxBytes: dSlot.customTargetMaxKB
+                  ? dSlot.customTargetMaxKB * 1024
+                  : activePreset.slots.document?.targetMaxBytes || 300 * 1024,
+                targetMinBytes: dSlot.customTargetMinKB
+                  ? dSlot.customTargetMinKB * 1024
+                  : activePreset.slots.document?.targetMinBytes,
+                width: dSlot.customWidth || activePreset.slots.document?.width || 1200,
+                height: dSlot.customHeight || activePreset.slots.document?.height || 1600,
+                aspectRatio: dSlot.customAspectRatio || activePreset.slots.document?.aspectRatio || 'Free',
+                aspectRatioValue:
+                  dSlot.customAspectRatioValue ||
+                  (dSlot.customWidth && dSlot.customHeight
+                    ? dSlot.customWidth / dSlot.customHeight
+                    : activePreset.slots.document?.aspectRatioValue || 1200 / 1600),
+              },
+            }
+          : {}),
       },
     };
 
     usePresetStore.getState().saveCustomPreset(customPreset);
+    get().resetAllSlotCustomTargets();
     usePresetStore.getState().setActivePreset(newId);
+    get().optimizeAllSlots();
     return newId;
   },
 

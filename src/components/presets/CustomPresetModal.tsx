@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Save, Download, Upload, Trash2, Copy, Sliders } from 'lucide-react';
 import { usePresetStore } from '../../store/usePresetStore';
+import { useDossierStore } from '../../store/useDossierStore';
 import type { PortalPreset, OutputFormat } from '../../core/presets/presetTypes';
 import { ActionButton } from '../common/ActionButton';
 
@@ -33,14 +34,69 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
   const [hasSignature, setHasSignature] = useState(true);
   const [sigMaxKB, setSigMaxKB] = useState(20);
   const [sigMinKB, setSigMinKB] = useState(10);
+  const [sigWidth, setSigWidth] = useState(280);
+  const [sigHeight, setSigHeight] = useState(120);
   const [sigRatio, setSigRatio] = useState('2:1');
 
   const [hasDocument, setHasDocument] = useState(false);
-  const [docMaxKB, setDocMaxKB] = useState(200);
+  const [docMaxKB, setDocMaxKB] = useState(300);
+  const [docWidth, setDocWidth] = useState(1200);
+  const [docHeight, setDocHeight] = useState(1600);
+  const [docRatio, setDocRatio] = useState('Free');
   const [docGrayscale, setDocGrayscale] = useState(true);
   const [docFormat, setDocFormat] = useState<OutputFormat>('application/pdf');
 
   const [importError, setImportError] = useState('');
+
+  // Dynamically initialize form inputs from currently active preset & active slots
+  useEffect(() => {
+    if (isOpen) {
+      const activePreset = usePresetStore.getState().getActivePreset();
+      const { photoSlot, signatureSlot, documentSlot } = useDossierStore.getState();
+
+      // Photo slot values
+      const pMax = photoSlot.customTargetMaxKB || (activePreset.slots.photo ? Math.round(activePreset.slots.photo.targetMaxBytes / 1024) : 50);
+      const pMin = photoSlot.customTargetMinKB || (activePreset.slots.photo?.targetMinBytes ? Math.round(activePreset.slots.photo.targetMinBytes / 1024) : 20);
+      const pW = photoSlot.customWidth || activePreset.slots.photo?.width || 350;
+      const pH = photoSlot.customHeight || activePreset.slots.photo?.height || 350;
+      const pRatio = photoSlot.customAspectRatio || activePreset.slots.photo?.aspectRatio || '1:1';
+      setPhotoMaxKB(pMax);
+      setPhotoMinKB(pMin);
+      setPhotoWidth(pW);
+      setPhotoHeight(pH);
+      setPhotoRatio(pRatio);
+      setPhotoFormat(activePreset.slots.photo?.defaultFormat || 'image/jpeg');
+
+      // Signature slot values
+      const hasSig = !!activePreset.slots.signature || !!signatureSlot.customTargetMaxKB || !!signatureSlot.file;
+      setHasSignature(hasSig);
+      const sMax = signatureSlot.customTargetMaxKB || (activePreset.slots.signature ? Math.round(activePreset.slots.signature.targetMaxBytes / 1024) : 20);
+      const sMin = signatureSlot.customTargetMinKB || (activePreset.slots.signature?.targetMinBytes ? Math.round(activePreset.slots.signature.targetMinBytes / 1024) : 10);
+      const sW = signatureSlot.customWidth || activePreset.slots.signature?.width || 280;
+      const sH = signatureSlot.customHeight || activePreset.slots.signature?.height || 120;
+      const sRatio = signatureSlot.customAspectRatio || activePreset.slots.signature?.aspectRatio || '2:1';
+      setSigMaxKB(sMax);
+      setSigMinKB(sMin);
+      setSigWidth(sW);
+      setSigHeight(sH);
+      setSigRatio(sRatio);
+
+      // Document slot values
+      const hasDoc = !!activePreset.slots.document || !!documentSlot.customTargetMaxKB || !!documentSlot.file;
+      setHasDocument(hasDoc);
+      const dMax = documentSlot.customTargetMaxKB || (activePreset.slots.document ? Math.round(activePreset.slots.document.targetMaxBytes / 1024) : 300);
+      const dW = documentSlot.customWidth || activePreset.slots.document?.width || 1200;
+      const dH = documentSlot.customHeight || activePreset.slots.document?.height || 1600;
+      const dRatio = documentSlot.customAspectRatio || activePreset.slots.document?.aspectRatio || 'Free';
+      const dFormat = activePreset.slots.document?.defaultFormat || 'application/pdf';
+      setDocMaxKB(dMax);
+      setDocWidth(dW);
+      setDocHeight(dH);
+      setDocRatio(dRatio);
+      setDocFormat(dFormat);
+      setDocGrayscale(activePreset.slots.document?.isGrayscaleDoc ?? true);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -80,13 +136,13 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                 id: `${presetId}-sig`,
                 type: 'signature',
                 title: 'Custom Signature Target',
-                description: `Max ${sigMaxKB} KB • ${sigRatio} Ratio`,
+                description: `Max ${sigMaxKB} KB • ${sigWidth}×${sigHeight} px (${sigRatio})`,
                 targetMaxBytes: sigMaxKB * 1024,
                 targetMinBytes: sigMinKB > 0 ? sigMinKB * 1024 : undefined,
-                width: 360,
-                height: sigRatio === '2:1' ? 180 : 360,
+                width: sigWidth,
+                height: sigHeight,
                 aspectRatio: sigRatio,
-                aspectRatioValue: sigRatio === '2:1' ? 2.0 : 1.0,
+                aspectRatioValue: sigWidth / sigHeight,
                 allowedFormats: ['image/jpeg'],
                 defaultFormat: 'image/jpeg',
               },
@@ -98,12 +154,12 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                 id: `${presetId}-doc`,
                 type: 'document',
                 title: 'Custom Document Target',
-                description: `Max ${docMaxKB} KB • ${docFormat === 'application/pdf' ? 'PDF' : 'JPEG'}`,
+                description: `Max ${docMaxKB} KB • ${docWidth}×${docHeight} px • ${docFormat === 'application/pdf' ? 'PDF' : 'JPEG'}`,
                 targetMaxBytes: docMaxKB * 1024,
-                width: 1200,
-                height: 1600,
-                aspectRatio: 'Free',
-                aspectRatioValue: 1200 / 1600,
+                width: docWidth,
+                height: docHeight,
+                aspectRatio: docRatio || 'Custom',
+                aspectRatioValue: docWidth / docHeight,
                 allowedFormats: [docFormat],
                 defaultFormat: docFormat,
                 isGrayscaleDoc: docGrayscale,
@@ -114,7 +170,10 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
     };
 
     saveCustomPreset(newPreset);
+    const { resetAllSlotCustomTargets, optimizeAllSlots } = useDossierStore.getState();
+    resetAllSlotCustomTargets();
     setActivePreset(presetId);
+    optimizeAllSlots();
     setName('');
     onClose();
   };
@@ -260,6 +319,28 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                     />
                   </div>
                   <div>
+                    <label className="text-[11px] text-slate-400 block mb-1">Width (px)</label>
+                    <input
+                      type="number"
+                      min="50"
+                      max="5000"
+                      value={photoWidth}
+                      onChange={(e) => setPhotoWidth(Number(e.target.value))}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-slate-400 block mb-1">Height (px)</label>
+                    <input
+                      type="number"
+                      min="50"
+                      max="5000"
+                      value={photoHeight}
+                      onChange={(e) => setPhotoHeight(Number(e.target.value))}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                    />
+                  </div>
+                  <div>
                     <label className="text-[11px] text-slate-400 block mb-1">Aspect Ratio</label>
                     <select
                       value={photoRatio}
@@ -310,7 +391,7 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                   </label>
                 </div>
                 {hasSignature && (
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                       <label className="text-[11px] text-slate-400 block mb-1">Max Ceiling (KB)</label>
                       <input
@@ -330,15 +411,26 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-slate-400 block mb-1">Proportion</label>
-                      <select
-                        value={sigRatio}
-                        onChange={(e) => setSigRatio(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white"
-                      >
-                        <option value="2:1">2:1 Official</option>
-                        <option value="1:1">1:1 Square</option>
-                      </select>
+                      <label className="text-[11px] text-slate-400 block mb-1">Width (px)</label>
+                      <input
+                        type="number"
+                        min="50"
+                        max="5000"
+                        value={sigWidth}
+                        onChange={(e) => setSigWidth(Number(e.target.value))}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">Height (px)</label>
+                      <input
+                        type="number"
+                        min="20"
+                        max="5000"
+                        value={sigHeight}
+                        onChange={(e) => setSigHeight(Number(e.target.value))}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                      />
                     </div>
                   </div>
                 )}
@@ -361,14 +453,38 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                   </label>
                 </div>
                 {hasDocument && (
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                       <label className="text-[11px] text-slate-400 block mb-1">Max Ceiling (KB)</label>
                       <input
                         type="number"
+                        min="5"
+                        max="20000"
                         value={docMaxKB}
                         onChange={(e) => setDocMaxKB(Number(e.target.value))}
                         className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">Width (px)</label>
+                      <input
+                        type="number"
+                        min="50"
+                        max="10000"
+                        value={docWidth}
+                        onChange={(e) => setDocWidth(Number(e.target.value))}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-400 block mb-1">Height (px)</label>
+                      <input
+                        type="number"
+                        min="50"
+                        max="10000"
+                        value={docHeight}
+                        onChange={(e) => setDocHeight(Number(e.target.value))}
+                        className="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
                       />
                     </div>
                     <div>
@@ -382,7 +498,7 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                         <option value="image/jpeg">JPEG Image</option>
                       </select>
                     </div>
-                    <div className="flex items-center pt-5">
+                    <div className="flex items-center pt-2 col-span-2 sm:col-span-4">
                       <label className="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
                         <input
                           type="checkbox"
@@ -390,7 +506,7 @@ export const CustomPresetModal: React.FC<CustomPresetModalProps> = ({ isOpen, on
                           onChange={(e) => setDocGrayscale(e.target.checked)}
                           className="rounded accent-emerald-500"
                         />
-                        Grayscale Desaturate
+                        Grayscale Desaturate (-60% payload size)
                       </label>
                     </div>
                   </div>

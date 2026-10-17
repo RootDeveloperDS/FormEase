@@ -155,7 +155,7 @@ export const DocumentSlotCard: React.FC = () => {
               )}
             </div>
             <p className="text-xs text-slate-400 truncate">
-              Official target: &lt; {Math.round(targetMaxBytes / 1024)} KB • {isPdfOutput ? 'Compliant PDF' : 'JPEG Scan'}
+              Official target: &lt; {Math.round(targetMaxBytes / 1024)} KB • {tweakWidth}×{tweakHeight} px • {isPdfOutput ? 'Compliant PDF' : 'JPEG Scan'}
             </p>
           </div>
         </div>
